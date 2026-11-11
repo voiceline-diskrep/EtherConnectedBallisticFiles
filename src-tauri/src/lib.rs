@@ -44,6 +44,13 @@ pub struct UpdateCheckResponse {
 }
 
 #[tauri::command]
+fn get_device_name() -> String {
+    std::env::var("COMPUTERNAME")
+        .or_else(|_| std::env::var("HOSTNAME"))
+        .unwrap_or_else(|_| "Local-PC".to_string())
+}
+
+#[tauri::command]
 fn get_network_adapters() -> Vec<NetworkAdapterInfo> {
     let networks = Networks::new_with_refreshed_list();
     let mut adapters = Vec::new();
@@ -211,6 +218,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_device_name,
             get_network_adapters,
             verify_file_hash,
             check_for_updates,

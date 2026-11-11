@@ -9,16 +9,18 @@
     "beforeBuildCommand": ""
   },
   "app": {
+    "withGlobalTauri": true,
     "windows": [
       {
+        "label": "main",
         "title": "EtherConnectedBallisticFiles",
-        "width": 1400,
-        "height": 900,
-        "minWidth": 1024,
-        "minHeight": 720,
+        "width": 1200,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 600,
         "resizable": true,
         "fullscreen": false,
-        "decorations": false,
+        "decorations": true,
         "transparent": false,
         "center": true
       }

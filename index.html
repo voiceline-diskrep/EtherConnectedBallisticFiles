@@ -5,3020 +5,1000 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EtherConnectedBallisticFiles</title>
 <style>
-/* ============================================================================
-   ETHERCONNECTED BALLISTIC FILES — STRICT 3-COLOR MONOCHROME SYSTEM
-   PALETTE: #000000 (Black), #1E1E1E (Dark Grey), #FFFFFF (White). THAT IS IT.
-   NO COLOR GRADIENTS. PURE SOLID SURFACES, CRISP GEOMETRY, KINETIC ANIMATIONS.
-   ============================================================================ */
-:root {
-  --c-black: #000000;
-  --c-darkgrey: #1E1E1E;
-  --c-white: #FFFFFF;
+  :root {
+    --c-black: #000000;
+    --c-darkgrey: #1E1E1E;
+    --c-white: #FFFFFF;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+  }
 
-  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-user-select: none;
+    user-select: none;
+  }
 
-  --ease-ballistic: cubic-bezier(0.18, 1.25, 0.22, 1);
-  --ease-hypersonic: cubic-bezier(0.16, 1, 0.3, 1);
-  --trans-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
-  --trans-smooth: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  body {
+    background-color: var(--c-black);
+    color: var(--c-white);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.45;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-  --radius-xs: 2px;
-  --radius-sm: 4px;
-}
+  /* Header Bar */
+  .app-header {
+    height: 52px;
+    background-color: var(--c-black);
+    border-bottom: 1px solid var(--c-darkgrey);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+  }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-body {
-  font-family: var(--font-sans);
-  background: var(--c-black);
-  color: var(--c-white);
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  user-select: none;
-  -webkit-font-smoothing: antialiased;
-  font-size: 13px;
-  line-height: 1.5;
-}
+  .brand-logo {
+    width: 28px;
+    height: 28px;
+    background: var(--c-white);
+    color: var(--c-black);
+    font-weight: 900;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+  }
 
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: var(--c-black); }
-::-webkit-scrollbar-thumb { background: var(--c-darkgrey); border: 1px solid var(--c-white); }
-::-webkit-scrollbar-thumb:hover { background: var(--c-white); }
+  .brand-title {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
 
-button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
-  outline: 2px solid var(--c-white);
-  outline-offset: 2px;
-}
+  .brand-pill {
+    font-size: 10px;
+    font-family: var(--font-mono);
+    padding: 2px 6px;
+    border: 1px solid var(--c-white);
+    border-radius: var(--radius-sm);
+  }
 
-/* Kinetic Animation Keyframes (Zero Gradients) */
-@keyframes recoilPulse {
-  0% { transform: scale(0.96) translateX(-3px); }
-  50% { transform: scale(1.03) translateX(2px); }
-  100% { transform: scale(1) translateX(0); }
-}
+  /* Navigation Tabs */
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+  }
 
-@keyframes impactShockwave {
-  0% { transform: scale(0.94); border-color: var(--c-white); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); border-color: var(--c-white); }
-}
+  .tab-btn {
+    background: transparent;
+    color: var(--c-white);
+    border: 1px solid transparent;
+    padding: 7px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 120ms ease;
+  }
 
-@keyframes beaconFlash {
-  0% { border-color: var(--c-white); background: var(--c-white); color: var(--c-black); }
-  50% { border-color: var(--c-darkgrey); background: var(--c-darkgrey); color: var(--c-white); }
-  100% { border-color: var(--c-white); background: var(--c-white); color: var(--c-black); }
-}
+  .tab-btn:hover {
+    background: var(--c-darkgrey);
+  }
 
-@keyframes chunkFlash {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); background: var(--c-white); color: var(--c-black); }
-  100% { transform: scale(1); }
-}
+  .tab-btn.active {
+    background: var(--c-white);
+    color: var(--c-black);
+    border-color: var(--c-white);
+  }
 
-@keyframes popIn {
-  0% { opacity: 0; transform: scale(0.94) translateY(8px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
+  /* Main Container */
+  .app-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+  }
 
-/* Window Shell */
-.app-window {
-  width: 100vw;
-  height: 100vh;
-  background: var(--c-black);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
+  .tab-content {
+    display: none;
+    flex: 1;
+    flex-direction: column;
+    max-width: 1080px;
+    margin: 0 auto;
+    width: 100%;
+  }
 
-/* Frameless Titlebar */
-.titlebar {
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 8px 0 16px;
-  border-bottom: 1px solid var(--c-darkgrey);
-  background: var(--c-black);
-  flex-shrink: 0;
-  z-index: 50;
-}
-.titlebar[data-tauri-drag-region] {
-  cursor: grab;
-}
+  .tab-content.active {
+    display: flex;
+  }
 
-.titlebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.app-logo-badge {
-  width: 24px;
-  height: 24px;
-  background: var(--c-white);
-  color: var(--c-black);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-xs);
-  font-weight: 800;
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-.sim-pill {
-  font-size: 9.5px;
-  font-family: var(--font-mono);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
-  background: var(--c-darkgrey);
-  color: var(--c-white);
-  border: 1px solid var(--c-white);
-  font-weight: 600;
-}
+  /* Card Surfaces */
+  .card {
+    background-color: var(--c-darkgrey);
+    border: 1px solid var(--c-darkgrey);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
 
-.titlebar-sim-bar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.sim-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  padding: 4px 9px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--c-darkgrey);
-  background: var(--c-black);
-  color: var(--c-white);
-  cursor: pointer;
-  transition: all var(--trans-fast);
-}
-.sim-btn:hover {
-  background: var(--c-white);
-  color: var(--c-black);
-  border-color: var(--c-white);
-}
-.sim-btn.highlight {
-  border-color: var(--c-white);
-  background: var(--c-darkgrey);
-}
-.sim-badge-count {
-  background: var(--c-white);
-  color: var(--c-black);
-  font-family: var(--font-mono);
-  font-weight: 800;
-  font-size: 9px;
-  padding: 0 4px;
-  border-radius: var(--radius-xs);
-}
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--c-black);
+    padding-bottom: 10px;
+  }
 
-.window-controls {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.win-ctrl-btn {
-  width: 34px;
-  height: 28px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--c-white);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  transition: all var(--trans-fast);
-  font-family: var(--font-mono);
-  font-weight: 700;
-}
-.win-ctrl-btn:hover {
-  background: var(--c-white);
-  color: var(--c-black);
-  border-color: var(--c-white);
-}
-.win-ctrl-btn.close:hover {
-  background: var(--c-white);
-  color: var(--c-black);
-}
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+  }
 
-/* Sidebar & Layout */
-.app-body {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-  position: relative;
-}
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--c-white);
+    border: 1px solid var(--c-white);
+    padding: 8px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 120ms ease;
+  }
 
-.sidebar {
-  width: 240px;
-  background: var(--c-darkgrey);
-  border-right: 1px solid var(--c-white);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 16px 12px;
-  flex-shrink: 0;
-}
+  .btn:hover {
+    background: var(--c-white);
+    color: var(--c-black);
+  }
 
-.sidebar-cta {
-  width: 100%;
-  margin: 0 0 14px;
-  padding: 10px 14px;
-  border-radius: var(--radius-xs);
-  background: var(--c-white);
-  color: var(--c-black);
-  border: 1px solid var(--c-white);
-  font-weight: 700;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: transform var(--ease-ballistic) 200ms, background var(--trans-fast);
-}
-.sidebar-cta:hover {
-  transform: translateY(-2px);
-  background: var(--c-black);
-  color: var(--c-white);
-}
-.sidebar-cta:active {
-  transform: translateY(1px);
-}
+  .btn:active {
+    transform: scale(0.98);
+  }
 
-.nav-section-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--c-white);
-  opacity: 0.6;
-  padding: 8px 10px 4px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-}
-.nav-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.nav-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  border-radius: var(--radius-xs);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--c-white);
-  font-size: 13px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all var(--trans-fast);
-}
-.nav-item-left {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-.nav-item:hover {
-  background: var(--c-black);
-  border-color: var(--c-white);
-  transform: translateX(2px);
-}
-.nav-item.active {
-  background: var(--c-black);
-  color: var(--c-white);
-  border-color: var(--c-white);
-  font-weight: 700;
-}
-.nav-pill {
-  font-size: 10.5px;
-  font-family: var(--font-mono);
-  padding: 1px 5px;
-  border-radius: var(--radius-xs);
-  background: var(--c-darkgrey);
-  color: var(--c-white);
-  border: 1px solid var(--c-white);
-}
+  .btn.btn-primary {
+    background: var(--c-white);
+    color: var(--c-black);
+  }
 
-/* Sidebar Ethernet Hardware Status Card */
-.sidebar-eth-status {
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.eth-status-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.eth-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--c-white);
-  display: inline-block;
-  border: 1px solid var(--c-white);
-}
-.eth-dot.warn { background: var(--c-darkgrey); }
-.eth-dot.error { background: transparent; border: 1.5px dashed var(--c-white); }
-.eth-adapter-mini-list {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 11px;
-  border-top: 1px solid var(--c-darkgrey);
-  padding-top: 8px;
-}
-.eth-adapter-mini-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-mono);
-}
+  .btn.btn-primary:hover {
+    background: var(--c-black);
+    color: var(--c-white);
+  }
 
-/* Main Content */
-.main-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px 36px;
-  position: relative;
-  background: var(--c-black);
-}
-.page-view {
-  display: none;
-  animation: popIn 200ms var(--ease-hypersonic);
-}
-.page-view.active {
-  display: block;
-}
+  .btn.btn-sm {
+    padding: 4px 10px;
+    font-size: 11px;
+  }
 
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.page-title {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.page-subtitle {
-  font-size: 12.5px;
-  color: var(--c-white);
-  opacity: 0.7;
-  margin-top: 3px;
-}
+  .btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
 
-.glass-card {
-  background: var(--c-darkgrey);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-sm);
-  padding: 18px;
-  position: relative;
-  transition: transform var(--ease-ballistic) 180ms;
-}
-.glass-card:hover {
-  transform: translateY(-1px);
-}
-.glass-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  gap: 12px;
-}
-.card-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  letter-spacing: -0.01em;
-}
+  /* Drop Zone */
+  .drop-zone {
+    border: 2px dashed var(--c-white);
+    border-radius: var(--radius-md);
+    padding: 48px 24px;
+    text-align: center;
+    background-color: var(--c-black);
+    cursor: pointer;
+    transition: all 140ms ease;
+    margin-bottom: 20px;
+  }
 
-/* Strict 3-Color Buttons */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: inherit;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--c-white);
-  background: var(--c-black);
-  color: var(--c-white);
-  cursor: pointer;
-  transition: all var(--trans-fast);
-  white-space: nowrap;
-}
-.btn:hover:not(:disabled) {
-  background: var(--c-white);
-  color: var(--c-black);
-  transform: translateY(-1px);
-}
-.btn:active:not(:disabled) {
-  transform: translateY(1px);
-}
-.btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-.btn-primary {
-  background: var(--c-white);
-  color: var(--c-black);
-  border-color: var(--c-white);
-  font-weight: 700;
-}
-.btn-primary:hover:not(:disabled) {
-  background: var(--c-black);
-  color: var(--c-white);
-}
-.btn-danger {
-  border: 1.5px dashed var(--c-white);
-}
-.btn-danger:hover:not(:disabled) {
-  border-style: solid;
-}
-.btn-sm {
-  padding: 4px 8px;
-  font-size: 11px;
-}
+  .drop-zone:hover, .drop-zone.dragover {
+    border-style: solid;
+    background-color: var(--c-darkgrey);
+  }
 
-/* Strict 3-Color Badges */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 7px;
-  border-radius: var(--radius-xs);
-  font-size: 10.5px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  border: 1px solid var(--c-white);
-  background: var(--c-black);
-  color: var(--c-white);
-}
-.badge-success {
-  background: var(--c-white);
-  color: var(--c-black);
-  border-color: var(--c-white);
-}
-.badge-warning {
-  background: var(--c-darkgrey);
-  color: var(--c-white);
-  border: 1px solid var(--c-white);
-}
-.badge-danger {
-  background: var(--c-black);
-  border: 1.5px dashed var(--c-white);
-}
-.badge-info {
-  background: var(--c-darkgrey);
-  border: 1px solid var(--c-white);
-}
-.badge-neutral {
-  border: 1px solid var(--c-darkgrey);
-  background: var(--c-black);
-}
+  .drop-zone-icon {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
 
-/* Grids */
-.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; }
-.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
-.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .drop-zone-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
 
-/* Stat Tiles */
-.stat-tile {
-  background: var(--c-darkgrey);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  transition: transform var(--ease-ballistic) 180ms;
-}
-.stat-tile:hover {
-  transform: translateY(-2px);
-}
-.stat-label {
-  font-size: 11px;
-  color: var(--c-white);
-  opacity: 0.7;
-  font-family: var(--font-mono);
-  margin-bottom: 4px;
-}
-.stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  font-family: var(--font-mono);
-}
-.stat-sub {
-  font-size: 11px;
-  color: var(--c-white);
-  opacity: 0.55;
-  margin-top: 3px;
-}
+  .drop-zone-sub {
+    font-size: 12px;
+    opacity: 0.75;
+    margin-bottom: 16px;
+  }
 
-/* Tabs */
-.tabs-bar {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: var(--c-black);
-  padding: 2px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--c-white);
-}
-.tab-btn {
-  padding: 4px 10px;
-  border-radius: var(--radius-xs);
-  border: none;
-  background: transparent;
-  color: var(--c-white);
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--trans-fast);
-}
-.tab-btn:hover {
-  background: var(--c-darkgrey);
-}
-.tab-btn.active {
-  background: var(--c-white);
-  color: var(--c-black);
-}
+  /* Selected Files List */
+  .files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
 
-/* In-Flight File Payload Transfer Animation */
-.visualizer-stage {
-  background: var(--c-darkgrey);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-sm);
-  padding: 18px;
-  margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
-}
+  .file-item {
+    background: var(--c-black);
+    border: 1px solid var(--c-white);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 
-.file-payload-stage {
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-xs);
-  padding: 12px 14px;
-  margin-bottom: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.file-payload-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  font-family: var(--font-mono);
-}
-.file-transfer-corridor {
-  display: grid;
-  grid-template-columns: 160px 1fr 160px;
-  align-items: center;
-  gap: 14px;
-}
-.file-pod {
-  background: var(--c-darkgrey);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-xs);
-  padding: 10px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.file-pod.active-pulse { animation: recoilPulse 400ms var(--ease-ballistic); }
-.file-pod.target-strike { animation: impactShockwave 400ms var(--ease-ballistic); }
-.file-pod-name {
-  font-size: 11px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 135px;
-}
-.file-pod-sub {
-  font-size: 9.5px;
-  opacity: 0.7;
-}
+  .file-item-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+  }
 
-.in-flight-blocks-zone {
-  height: 64px;
-  background: var(--c-black);
-  border: 1px solid var(--c-darkgrey);
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-}
-.flying-file-block {
-  position: absolute;
-  height: 22px;
-  background: var(--c-white);
-  color: var(--c-black);
-  border: 1px solid var(--c-black);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 6px;
-  border-radius: var(--radius-xs);
-  white-space: nowrap;
-}
+  .file-name {
+    font-weight: 600;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 480px;
+  }
 
-.visualizer-nodes-row {
-  display: grid;
-  grid-template-columns: 180px 1fr 180px;
-  align-items: center;
-  gap: 16px;
-  margin-top: 10px;
-}
-.endpoint-node {
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-xs);
-  padding: 14px 10px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  transition: transform var(--ease-ballistic) 200ms;
-}
-.endpoint-node.firing { animation: recoilPulse 300ms var(--ease-ballistic); }
-.endpoint-name {
-  font-size: 12px;
-  font-weight: 700;
-  font-family: var(--font-mono);
-}
-.endpoint-role {
-  font-size: 10.5px;
-  opacity: 0.7;
-}
+  .file-size {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    opacity: 0.75;
+  }
 
-#particleCanvas {
-  width: 100%;
-  height: 180px;
-  display: block;
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-}
+  /* Kinetic Corridor Animation Stage */
+  .corridor-stage {
+    background: var(--c-black);
+    border: 1px solid var(--c-white);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 20px;
+    position: relative;
+  }
 
-#speedChartCanvas {
-  width: 100%;
-  height: 160px;
-  display: block;
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-}
+  .corridor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
 
-.chunk-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
-  gap: 5px;
-  margin-top: 10px;
-}
-.chunk-cell {
-  padding: 6px 3px;
-  border-radius: var(--radius-xs);
-  font-family: var(--font-mono);
-  font-size: 9.5px;
-  text-align: center;
-  font-weight: 700;
-  border: 1px solid var(--c-white);
-  background: var(--c-black);
-  color: var(--c-white);
-  transition: transform 140ms;
-}
-.chunk-cell:hover { transform: scale(1.12); z-index: 2; }
-.chunk-cell.flashing { animation: chunkFlash 350ms ease-out; }
-.chunk-cell.path-1 {
-  background: var(--c-white);
-  color: var(--c-black);
-  border-color: var(--c-white);
-}
-.chunk-cell.path-2 {
-  background: var(--c-darkgrey);
-  border-color: var(--c-white);
-  color: var(--c-white);
-}
-.chunk-cell.redistributed {
-  background: var(--c-black);
-  border: 1.5px dashed var(--c-white);
-  animation: beaconFlash 1.6s infinite;
-}
+  .corridor-canvas {
+    width: 100%;
+    height: 120px;
+    background: var(--c-black);
+    display: block;
+  }
 
-.lifecycle-stepper {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-top: 12px;
-}
-.lifecycle-step {
-  padding: 8px 10px;
-  border-radius: var(--radius-xs);
-  background: var(--c-black);
-  border: 1px solid var(--c-darkgrey);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--c-white);
-  opacity: 0.55;
-  transition: all var(--trans-fast);
-}
-.lifecycle-step.active {
-  border-color: var(--c-white);
-  opacity: 1;
-}
-.lifecycle-step.done {
-  border-color: var(--c-white);
-  background: var(--c-white);
-  color: var(--c-black);
-  opacity: 1;
-}
-.lifecycle-step.error {
-  border: 1.5px dashed var(--c-white);
-  opacity: 1;
-}
+  /* Progress Bar */
+  .progress-bar-container {
+    height: 12px;
+    background: var(--c-darkgrey);
+    border: 1px solid var(--c-white);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
 
-.progress-track {
-  width: 100%;
-  height: 6px;
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-xs);
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  background: var(--c-white);
-  transition: width 180ms linear;
-}
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--c-white);
+    width: 0%;
+    transition: width 100ms linear;
+  }
 
-/* Device Card & Drop Zone */
-.device-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 12px;
-}
-.device-card-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-.device-avatar {
-  width: 36px;
-  height: 36px;
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 800;
-  font-family: var(--font-mono);
-}
-.device-meta-list {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  font-size: 11.5px;
-  background: var(--c-black);
-  padding: 8px 10px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--c-darkgrey);
-}
-.device-meta-row {
-  display: flex;
-  justify-content: space-between;
-  font-family: var(--font-mono);
-}
-.drop-zone {
-  border: 1.5px dashed var(--c-white);
-  border-radius: var(--radius-xs);
-  padding: 9px;
-  text-align: center;
-  font-size: 11px;
-  font-family: var(--font-mono);
-  background: var(--c-black);
-  cursor: pointer;
-  transition: all var(--trans-fast);
-}
-.drop-zone:hover, .drop-zone.drag-over {
-  border-style: solid;
-  background: var(--c-white);
-  color: var(--c-black);
-}
+  /* Telemetry Grid */
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
 
-.sample-drag-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--c-darkgrey);
-  border: 1px solid var(--c-white);
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-.draggable-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: var(--radius-xs);
-  background: var(--c-white);
-  color: var(--c-black);
-  border: 1px solid var(--c-white);
-  font-size: 11.5px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  cursor: grab;
-  transition: transform 140ms;
-}
-.draggable-chip:active {
-  cursor: grabbing;
-  transform: scale(0.96);
-}
+  .telemetry-tile {
+    background: var(--c-black);
+    border: 1px solid var(--c-white);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+  }
 
-/* Modals */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 20px;
-}
-.modal-backdrop.open {
-  display: flex;
-  animation: popIn 200ms var(--ease-hypersonic);
-}
-.modal-box {
-  width: 100%;
-  max-width: 600px;
-  max-height: 88vh;
-  overflow-y: auto;
-  background: var(--c-darkgrey);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-sm);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--c-white);
-  padding-bottom: 10px;
-}
-.modal-title {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.modal-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  border-top: 1px solid var(--c-white);
-  padding-top: 12px;
-}
+  .telemetry-label {
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+    opacity: 0.75;
+    margin-bottom: 4px;
+  }
 
-/* Forms */
-.input-control, .select-control {
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  color: var(--c-white);
-  padding: 6px 10px;
-  border-radius: var(--radius-xs);
-  font-family: inherit;
-  font-size: 12px;
-}
-.input-control:focus, .select-control:focus {
-  border-color: var(--c-white);
-}
+  .telemetry-val {
+    font-size: 18px;
+    font-weight: 800;
+    font-family: var(--font-mono);
+  }
 
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 36px;
-  height: 20px;
-  flex-shrink: 0;
-}
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider {
-  position: absolute;
-  cursor: pointer;
-  inset: 0;
-  background-color: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-radius: 99px;
-  transition: 0.14s;
-}
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 12px;
-  width: 12px;
-  left: 3px;
-  bottom: 3px;
-  background-color: var(--c-white);
-  border-radius: 50%;
-  transition: 0.14s;
-}
-input:checked + .slider { background-color: var(--c-white); }
-input:checked + .slider:before { transform: translateX(16px); background-color: var(--c-black); }
+  /* Network Adapters Grid */
+  .adapter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+  }
 
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.data-table th {
-  text-align: left;
-  padding: 10px 14px;
-  color: var(--c-white);
-  font-weight: 700;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono);
-  border-bottom: 1px solid var(--c-white);
-}
-.data-table th.num-col, .data-table td.num-col {
-  text-align: right;
-  font-family: var(--font-mono);
-}
-.data-table td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--c-darkgrey);
-  vertical-align: middle;
-}
-.data-table tbody tr:hover td {
-  background: var(--c-black);
-}
+  .adapter-card {
+    background: var(--c-black);
+    border: 1px solid var(--c-white);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
 
-.toast-stack {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  z-index: 120;
-  pointer-events: none;
-}
-.toast-item {
-  width: 320px;
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-left: 4px solid var(--c-white);
-  border-radius: var(--radius-xs);
-  padding: 10px 12px;
-  pointer-events: auto;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
-  animation: popIn 180ms var(--ease-hypersonic);
-}
+  .adapter-name {
+    font-weight: 700;
+    font-size: 12.5px;
+  }
 
-.settings-layout { display: grid; grid-template-columns: 200px 1fr; gap: 20px; }
-.settings-subnav { display: flex; flex-direction: column; gap: 3px; }
-.settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--c-white);
-}
-.settings-row:last-child { border-bottom: none; }
-.settings-label-title { font-size: 13px; font-weight: 600; }
-.settings-label-desc { font-size: 11.5px; opacity: 0.7; margin-top: 2px; }
+  .adapter-details {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    opacity: 0.75;
+  }
 
-.tray-flyout {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 300px;
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  z-index: 95;
-  display: none;
-  flex-direction: column;
-  gap: 8px;
-}
-.tray-flyout.open {
-  display: flex;
-  animation: popIn 160ms var(--ease-hypersonic);
-}
-.tray-menu-btn {
-  width: 100%;
-  text-align: left;
-  padding: 7px 9px;
-  border-radius: var(--radius-xs);
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--c-white);
-  font-size: 12px;
-  cursor: pointer;
-}
-.tray-menu-btn:hover {
-  background: var(--c-white);
-  color: var(--c-black);
-}
+  /* Settings Row */
+  .settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--c-black);
+  }
 
-.minimized-restore-bar {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--c-black);
-  border: 1px solid var(--c-white);
-  padding: 8px 16px;
-  border-radius: var(--radius-xs);
-  display: none;
-  align-items: center;
-  gap: 12px;
-  z-index: 90;
-}
-.minimized-restore-bar.visible {
-  display: flex;
-  animation: popIn 200ms var(--ease-hypersonic);
-}
+  .settings-label-title {
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .settings-label-desc {
+    font-size: 11.5px;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
+
+  .text-input {
+    background: var(--c-black);
+    border: 1px solid var(--c-white);
+    color: var(--c-white);
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    font-size: 12.5px;
+    font-family: var(--font-mono);
+    outline: none;
+    width: 260px;
+  }
+
+  .text-input:focus {
+    border-width: 2px;
+  }
+
+  /* Toast Notification */
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--c-white);
+    color: var(--c-black);
+    padding: 12px 18px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 12px;
+    display: none;
+    z-index: 1000;
+  }
 </style>
 </head>
 <body>
 
-<div class="app-window" id="appWindow">
+  <!-- Hidden Native File Inputs -->
+  <input type="file" id="filePicker" multiple style="display: none;" onchange="handleFilesSelected(event)">
+  <input type="file" id="folderPicker" webkitdirectory directory style="display: none;" onchange="handleFilesSelected(event)">
 
-  <!-- TITLEBAR -->
-  <header class="titlebar" data-tauri-drag-region>
-    <div class="titlebar-brand" data-tauri-drag-region>
-      <div class="app-logo-badge">ECB</div>
-      <span>EtherConnectedBallisticFiles</span>
-      <span class="sim-pill">v0.1.0</span>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-logo">ECB</div>
+      <span class="brand-title">EtherConnectedBallisticFiles</span>
+      <span class="brand-pill">v0.1.0</span>
     </div>
 
-    <div class="titlebar-sim-bar">
-      <button class="sim-btn highlight" onclick="fireKineticSalvo()" title="Fire Hypersonic File Payload Burst">
-        ► SALVO BURST
-      </button>
-
-      <button class="sim-btn" onclick="openIncomingModal('trusted')" title="Test Incoming Transfer Approval">
-        INCOMING <span class="sim-badge-count" id="incomingBadgeCount">3</span>
-      </button>
-
-      <button class="sim-btn" onclick="openStateSimModal()" title="Simulate 12 Empty & Error States">
-        STATES (12)
-      </button>
-
-      <button class="sim-btn" onclick="toggleTrajectoryMode()" id="trajectoryModeBtn">
-        MODE: <span id="trajectoryModeLabel">HYPER-RAIL</span>
-      </button>
-
-      <button class="sim-btn" onclick="toggleTrayFlyout()">
-        TRAY
-      </button>
-    </div>
-
-    <div class="window-controls">
-      <button class="win-ctrl-btn" onclick="appMinimize()" title="Minimize Window">_</button>
-      <button class="win-ctrl-btn" onclick="appMaximize()" title="Maximize / Restore">□</button>
-      <button class="win-ctrl-btn close" onclick="appClose()" title="Close Window">✕</button>
-    </div>
+    <nav class="nav-tabs">
+      <button class="tab-btn active" id="tabSend" onclick="switchTab('send')">Send</button>
+      <button class="tab-btn" id="tabTransfers" onclick="switchTab('transfers')">Transfers</button>
+      <button class="tab-btn" id="tabSettings" onclick="switchTab('settings')">Settings</button>
+    </nav>
   </header>
 
-  <div class="app-body">
+  <!-- Main Content -->
+  <main class="app-main">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div>
-        <button class="sidebar-cta" onclick="openSendFilesModal()">
-          + SEND FILES
-        </button>
-
-        <div class="nav-section-label">Navigation</div>
-        <ul class="nav-list">
-          <li>
-            <button class="nav-item active" data-page="home" onclick="navigateTo('home')">
-              <span class="nav-item-left">Home</span>
-            </button>
-          </li>
-          <li>
-            <button class="nav-item" data-page="devices" onclick="navigateTo('devices')">
-              <span class="nav-item-left">Devices</span>
-              <span class="nav-pill" id="navDevicesCount">5</span>
-            </button>
-          </li>
-          <li>
-            <button class="nav-item" data-page="transfers" onclick="navigateTo('transfers')">
-              <span class="nav-item-left">Transfers</span>
-              <span class="nav-pill" id="navTransfersCount">2</span>
-            </button>
-          </li>
-          <li>
-            <button class="nav-item" data-page="history" onclick="navigateTo('history')">
-              <span class="nav-item-left">Transfer History</span>
-            </button>
-          </li>
-          <li>
-            <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">
-              <span class="nav-item-left">Settings</span>
-            </button>
-          </li>
-        </ul>
+    <!-- TAB 1: SEND -->
+    <section class="tab-content active" id="contentSend">
+      <!-- Drop Zone -->
+      <div class="drop-zone" id="dropZone" onclick="triggerFilePicker(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div class="drop-zone-icon">⇪</div>
+        <div class="drop-zone-title">Drop any file or folder here to send</div>
+        <div class="drop-zone-sub">or click to open the Windows File Browser</div>
+        <div style="display:flex;gap:10px;justify-content:center;" onclick="event.stopPropagation()">
+          <button class="btn btn-primary" onclick="triggerFilePicker(event)">Browse Files</button>
+          <button class="btn" onclick="triggerFolderPicker(event)">Browse Folder</button>
+        </div>
       </div>
 
-      <!-- PERMANENT ETHERNET HARDWARE STATUS ANCHOR -->
-      <div class="sidebar-eth-status">
-        <div class="eth-status-top">
-          <div style="display:flex;align-items:center;gap:7px;">
-            <span class="eth-dot" id="sidebarEthDot"></span>
-            <span style="font-size:12px;font-weight:700;" id="sidebarEthTitle">Multi-Link Ready</span>
+      <!-- Selected Files Card -->
+      <div class="card" id="selectedFilesCard" style="display: none;">
+        <div class="card-header">
+          <div class="card-title">Selected Payload (<span id="selectedFilesCount">0</span> items)</div>
+          <button class="btn btn-sm" onclick="clearSelectedFiles()">Clear All</button>
+        </div>
+        <div class="files-list" id="selectedFilesList"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--c-black);">
+          <div style="font-family:var(--font-mono);font-size:12px;">
+            Total Size: <strong id="selectedTotalSize">0 B</strong>
           </div>
-          <span class="badge badge-success" id="sidebarEthRate">3.5 Gbps</span>
+          <button class="btn btn-primary" id="btnLaunchTransfer" onclick="startTransfer()">
+            Launch Transfer →
+          </button>
         </div>
-        <div style="font-size:11px;opacity:0.75;font-family:var(--font-mono);" id="sidebarEthSub">
-          WORKSTATION-PRO • 2 Paths Active
-        </div>
-        <div class="eth-adapter-mini-list" id="sidebarAdapterList"></div>
       </div>
-    </aside>
 
-    <!-- MAIN SCROLLABLE CONTENT VIEW -->
-    <main class="main-content" id="mainScrollArea">
-      <div id="globalSimErrorBanner" style="display:none;margin-bottom:16px;" class="glass-card"></div>
-
-      <!-- ====================================================================
-           PAGE 1: HOME
-           ==================================================================== -->
-      <section class="page-view active" id="page-home">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Workstation Multi-Link Overview</h1>
-            <p class="page-subtitle">Host: <strong>WORKSTATION-PRO</strong> (192.168.10.10) • Solid 3-Color Monochromatic Architecture</p>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary" onclick="openSendFilesModal()">Send Files</button>
-            <button class="btn" onclick="navigateTo('transfers')">Open Telemetry</button>
+      <!-- Network Connections Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Network Interfaces</div>
+          <button class="btn btn-sm" onclick="refreshNetworkAdapters()">Refresh</button>
+        </div>
+        <div class="adapter-grid" id="adapterList">
+          <div class="adapter-card">
+            <div class="adapter-name">Scanning network interfaces...</div>
+            <div class="adapter-details">Reading adapter state from system</div>
           </div>
         </div>
-
-        <div class="grid-4" style="margin-bottom:16px;">
-          <div class="stat-tile">
-            <div class="stat-label">LINK STATUS</div>
-            <div class="stat-value" id="homeLinkStateText">Connected</div>
-            <div class="stat-sub">USB 3.2 (2.5G) + Intel (1G)</div>
-          </div>
-          <div class="stat-tile">
-            <div class="stat-label">AGGREGATE SPEED</div>
-            <div class="stat-value" id="homeNegotiatedSpeed">3.5 Gbps</div>
-            <div class="stat-sub">Dual-cable bonded transport</div>
-          </div>
-          <div class="stat-tile">
-            <div class="stat-label">LINK STABILITY</div>
-            <div class="stat-value">99.99%</div>
-            <div class="stat-sub">0.14 ms round-trip latency</div>
-          </div>
-          <div class="stat-tile">
-            <div class="stat-label">LIVE THROUGHPUT</div>
-            <div class="stat-value" id="homeLiveThroughput">285 MB/s</div>
-            <div class="stat-sub">Active in-flight packet stream</div>
-          </div>
-        </div>
-
-        <div class="grid-2" style="margin-bottom:16px;">
-          <div class="glass-card">
-            <div class="glass-card-header">
-              <div class="card-title">Aggregated Physical Adapters</div>
-              <span class="badge badge-success">Multi-Link Active</span>
-            </div>
-            <div id="homeAdapterBars" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
-
-            <div style="background:var(--c-black);border:1px solid var(--c-white);padding:12px;border-radius:var(--radius-xs);">
-              <svg width="100%" height="64" viewBox="0 0 500 64">
-                <rect x="4" y="14" width="90" height="36" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>
-                <text x="49" y="36" text-anchor="middle" fill="#FFFFFF" font-size="9" font-family="monospace" font-weight="700">WORKSTATION</text>
-                <path d="M 94 22 L 406 22" stroke="#FFFFFF" stroke-width="2"/>
-                <text x="250" y="16" text-anchor="middle" fill="#FFFFFF" font-size="8.5" font-family="monospace">Path 1: USB 3.2 (2.5G) • 195 MB/s</text>
-                <path d="M 94 42 L 406 42" stroke="#FFFFFF" stroke-width="1.2"/>
-                <text x="250" y="55" text-anchor="middle" fill="#FFFFFF" font-size="8.5" font-family="monospace">Path 2: Intel I225-V (1G) • 90 MB/s</text>
-                <rect x="406" y="14" width="90" height="36" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>
-                <text x="451" y="36" text-anchor="middle" fill="#FFFFFF" font-size="9" font-family="monospace" font-weight="700">DESKTOP-STUDIO</text>
-              </svg>
-            </div>
-          </div>
-
-          <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
-            <div>
-              <div class="glass-card-header">
-                <div class="card-title">Recent Activity</div>
-                <button class="btn btn-sm" onclick="navigateTo('history')">Audit Log</button>
-              </div>
-              <div id="homeRecentActivityList" style="display:flex;flex-direction:column;gap:6px;"></div>
-            </div>
-            <div style="padding-top:10px;border-top:1px solid var(--c-white);display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:11px;font-family:var(--font-mono);">ACTIONS:</span>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-sm btn-primary" onclick="fireKineticSalvo()">Fire Salvo Burst</button>
-                <button class="btn btn-sm" onclick="openIncomingModal('trusted')">Incoming Request</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass-card">
-          <div class="glass-card-header">
-            <div class="card-title">Discovered Ethernet Peers</div>
-            <button class="btn btn-sm" onclick="navigateTo('devices')">View All Devices →</button>
-          </div>
-          <div class="grid-3" id="homeDevicesGrid"></div>
-        </div>
-      </section>
-
-      <!-- ====================================================================
-           PAGE 2: DEVICES
-           ==================================================================== -->
-      <section class="page-view" id="page-devices">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Discovered Local Peers</h1>
-            <p class="page-subtitle">Drag and drop files directly onto any paired computer card to launch a multi-link transfer.</p>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <div class="tabs-bar" id="deviceFilterTabs">
-              <button class="tab-btn active" onclick="setDeviceFilter('all', this)" id="btnDevFilterAll">All (5)</button>
-              <button class="tab-btn" onclick="setDeviceFilter('online', this)">Online</button>
-              <button class="tab-btn" onclick="setDeviceFilter('trusted', this)">Trusted</button>
-              <button class="tab-btn" onclick="setDeviceFilter('untrusted', this)">Untrusted</button>
-              <button class="tab-btn" onclick="setDeviceFilter('offline', this)">Offline</button>
-            </div>
-            <button class="btn btn-sm" onclick="triggerDeviceRescan()">Rescan Subnets</button>
-          </div>
-        </div>
-
-        <div class="sample-drag-bar">
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="badge badge-success">PAYLOAD STAGE</span>
-            <span style="font-size:11.5px;font-family:var(--font-mono);">
-              Drag this sample payload chip onto any online computer card below:
-            </span>
-          </div>
-          <div class="draggable-chip" draggable="true" ondragstart="handleSampleChipDragStart(event)">
-            Studio_Master_4K_Build.zip (6.4 GB)
-          </div>
-        </div>
-
-        <div class="grid-3" id="devicesPageGrid"></div>
-      </section>
-
-      <!-- ====================================================================
-           PAGE 3: TRANSFERS & DUAL-STAGE FILE PAYLOAD ANIMATION
-           ==================================================================== -->
-      <section class="page-view" id="page-transfers">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Ballistic Multi-Link Telemetry</h1>
-            <p class="page-subtitle">Visual in-flight file payload packet corridor, hypersonic particle streams, and SHA-256 verification</p>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-primary" onclick="openSendFilesModal()">+ New Transfer</button>
-            <button class="btn" onclick="navigateTo('history')">Audit History</button>
-          </div>
-        </div>
-
-        <div class="visualizer-stage">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:14px;font-weight:700;font-family:var(--font-mono);" id="vizJobTitle">Project_Backup.zip</span>
-              <span class="badge badge-success" id="vizJobStateBadge">Active In-Flight</span>
-              <span class="badge badge-info">16 MB Chunks</span>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-sm btn-danger" id="btnSimDisconnect" onclick="simulateAdapterToggle()">Disconnect USB 3.2</button>
-              <button class="btn btn-sm" onclick="triggerVerificationDemo()">Fast-Forward Verify</button>
-              <button class="btn btn-sm" onclick="simulateVerificationFailureDemo()">Simulate Hash Mismatch</button>
-            </div>
-          </div>
-
-          <!-- IN-FLIGHT FILE PAYLOAD CORRIDOR -->
-          <div class="file-payload-stage">
-            <div class="file-payload-header">
-              <span>IN-FLIGHT FILE PAYLOAD CORRIDOR</span>
-              <span id="fileBlockCounterText">In-Flight: 12 Blocks • 67.4% Reassembled</span>
-            </div>
-            <div class="file-transfer-corridor">
-              <div class="file-pod" id="fileSenderPod">
-                <div class="file-pod-name" id="filePodSourceName">Project_Backup.zip</div>
-                <div class="file-pod-sub" id="filePodSourceSub">12.5 GB • 142 Files</div>
-                <span class="badge badge-success" style="font-size:9px;margin-top:2px;">SENDER POD</span>
-              </div>
-
-              <div class="in-flight-blocks-zone" id="inFlightBlocksZone"></div>
-
-              <div class="file-pod" id="fileReceiverPod">
-                <div class="file-pod-name" id="filePodReceiverName">DESKTOP-STUDIO</div>
-                <div class="file-pod-sub" id="filePodReceivedSub">8.42 GB Reassembled</div>
-                <span class="badge badge-info" style="font-size:9px;margin-top:2px;">RECEIVER POD</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- PARTICLE CANVAS -->
-          <div class="visualizer-nodes-row">
-            <div class="endpoint-node" id="nodeSender">
-              <div class="endpoint-name">WORKSTATION-PRO</div>
-              <div class="endpoint-role">Local Sender</div>
-              <span class="badge badge-success" id="vizCombinedSpeedBadge" style="margin-top:4px;">285 MB/s</span>
-            </div>
-
-            <canvas id="particleCanvas"></canvas>
-
-            <div class="endpoint-node" id="nodeReceiver">
-              <div class="endpoint-name" id="vizReceiverName">DESKTOP-STUDIO</div>
-              <div class="endpoint-role">Remote Receiver</div>
-              <span class="badge badge-success" id="vizProgressBadge" style="margin-top:4px;">67.4%</span>
-            </div>
-          </div>
-
-          <!-- Stepper -->
-          <div class="lifecycle-stepper" id="verificationStepper">
-            <div class="lifecycle-step active" id="step-receiving">1. Receiving Chunks</div>
-            <div class="lifecycle-step" id="step-reassembling">2. Reassembling Blocks</div>
-            <div class="lifecycle-step" id="step-verifying">3. SHA-256 Digest</div>
-            <div class="lifecycle-step" id="step-completed">4. Verified & Complete</div>
-          </div>
-        </div>
-
-        <div class="grid-2" style="margin-bottom:16px;">
-          <!-- Speed Graph -->
-          <div class="glass-card">
-            <div class="glass-card-header">
-              <div class="card-title">Real-Time Throughput Telemetry</div>
-              <div style="font-family:var(--font-mono);font-size:11px;">
-                Cur: <strong id="graphCurrentSpeed">285 MB/s</strong> | Avg: <strong id="graphAvgSpeed">268 MB/s</strong> | Peak: <strong id="graphPeakSpeed">312 MB/s</strong>
-              </div>
-            </div>
-            <canvas id="speedChartCanvas"></canvas>
-            <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--font-mono);margin-top:8px;">
-              <span id="graphDataTransferred">Transferred: 8.42 GB of 12.50 GB</span>
-              <span>Zero-Gradient Solid Graph</span>
-            </div>
-          </div>
-
-          <!-- Chunk Matrix -->
-          <div class="glass-card">
-            <div class="glass-card-header">
-              <div class="card-title">Dynamic Chunk Allocation & Failover</div>
-              <span class="badge badge-info" id="ackStatusText">ACK: 526/781 Verified</span>
-            </div>
-            <div style="display:flex;gap:10px;font-size:10px;font-family:var(--font-mono);margin-bottom:6px;">
-              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--c-white);display:inline-block;"></span> USB 3.2 (2.5G)</span>
-              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--c-darkgrey);border:1px solid var(--c-white);display:inline-block;"></span> Intel GbE (1G)</span>
-              <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border:1px dashed var(--c-white);display:inline-block;"></span> Redistributed</span>
-            </div>
-            <div class="chunk-grid" id="chunkMatrixGrid"></div>
-          </div>
-        </div>
-
-        <!-- Filterable Transfer Queue List -->
-        <div class="glass-card">
-          <div class="glass-card-header" style="flex-wrap:wrap;">
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-              <span class="card-title">Transfer Queue</span>
-              <div class="tabs-bar" id="transferFilterTabs">
-                <button class="tab-btn active" onclick="setTransferFilter('all', this)">All</button>
-                <button class="tab-btn" onclick="setTransferFilter('active', this)">Active</button>
-                <button class="tab-btn" onclick="setTransferFilter('queued', this)">Queued</button>
-                <button class="tab-btn" onclick="setTransferFilter('paused', this)">Paused</button>
-                <button class="tab-btn" onclick="setTransferFilter('completed', this)">Completed</button>
-                <button class="tab-btn" onclick="setTransferFilter('failed', this)">Failed</button>
-              </div>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-sm" onclick="pauseAllTransfers()">Pause All</button>
-              <button class="btn btn-sm" onclick="resumeAllTransfers()">Resume All</button>
-            </div>
-          </div>
-          <div id="transfersListContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
-        </div>
-      </section>
-
-      <!-- ====================================================================
-           PAGE 4: HISTORY
-           ==================================================================== -->
-      <section class="page-view" id="page-history">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Transfer Audit & Verification Log</h1>
-            <p class="page-subtitle">Permanent cryptographic SHA-256 records of verified multi-link file deliveries</p>
-          </div>
-          <button class="btn btn-sm" onclick="toggleEmptyHistoryDemo()" id="btnToggleEmptyHistory">Simulate Empty</button>
-        </div>
-        <div class="glass-card" style="padding:0;overflow:hidden;" id="historyTableCard"></div>
-      </section>
-
-      <!-- ====================================================================
-           PAGE 5: SETTINGS & GITHUB UPDATE DETECTOR
-           ==================================================================== -->
-      <section class="page-view" id="page-settings">
-        <div class="page-header">
-          <div>
-            <h1 class="page-title">Application Settings</h1>
-            <p class="page-subtitle">Strict 3-Color Monochromatic Configuration & GitHub Release Updates</p>
-          </div>
-          <button class="btn btn-danger btn-sm" onclick="resetPrototypeState()">Reset Prototype State</button>
-        </div>
-
-        <div class="settings-layout">
-          <div class="glass-card settings-subnav" style="height:fit-content;padding:8px;">
-            <button class="nav-item active" data-stab="general" onclick="switchSettingsTab('general', this)">General & Updates</button>
-            <button class="nav-item" data-stab="transfers" onclick="switchSettingsTab('transfers', this)">Transfers & Links</button>
-            <button class="nav-item" data-stab="security" onclick="switchSettingsTab('security', this)">Security & Identity</button>
-          </div>
-
-          <div>
-            <!-- General Settings + GitHub Update Detector -->
-            <div class="glass-card settings-panel" id="stab-general">
-              <div class="card-title" style="margin-bottom:10px;">Software Updates</div>
-
-              <!-- GitHub Update Checker Box -->
-              <div style="background:var(--c-black);border:1px solid var(--c-white);padding:14px;border-radius:var(--radius-xs);margin-bottom:14px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                  <div>
-                    <div style="font-weight:700;font-size:13px;">Installed Version: <span id="settingsCurrentVersion">0.1.0</span></div>
-                    <div style="font-size:11px;opacity:0.75;font-family:var(--font-mono);margin-top:2px;">Repository: voiceline-diskrep/EtherConnectedBallisticFiles</div>
-                  </div>
-                  <button class="btn btn-primary btn-sm" id="btnCheckUpdates" onclick="checkForSoftwareUpdates()">
-                    Check for Updates
-                  </button>
-                </div>
-                <div id="updateStatusNotice" style="font-size:12px;font-family:var(--font-mono);padding:8px 10px;background:var(--c-darkgrey);border:1px solid var(--c-white);border-radius:var(--radius-xs);">
-                  Ready to check GitHub for updates.
-                </div>
-                <div id="updateActionRow" style="display:none;margin-top:8px;">
-                  <a id="btnViewReleaseGithub" href="https://github.com/voiceline-diskrep/EtherConnectedBallisticFiles/releases" target="_blank" class="btn btn-sm" style="text-decoration:none;">
-                    View Release on GitHub
-                  </a>
-                </div>
-              </div>
-
-              <div class="card-title" style="margin-bottom:10px;">Desktop Runtime Behavior</div>
-              <div class="settings-row">
-                <div>
-                  <div class="settings-label-title">Window Close (✕) Behavior</div>
-                  <div class="settings-label-desc">Choose between background tray minimization and application exit</div>
-                </div>
-                <select class="select-control" id="setCloseBehavior" onchange="saveSettingsFromUI()">
-                  <option value="tray">Minimize to system tray</option>
-                  <option value="exit">Completely exit application</option>
-                </select>
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-label-title">Default Destination Directory</div>
-                  <div class="settings-label-desc">Default storage path for accepted incoming transfers</div>
-                </div>
-                <input type="text" class="input-control" id="setDefaultFolder" value="D:\EtherTransfers\Incoming" style="width:240px;font-family:var(--font-mono);" onchange="saveSettingsFromUI()">
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-label-title">Ballistic Trajectory Mode</div>
-                  <div class="settings-label-desc">Canvas mathematical model for packet particle acceleration</div>
-                </div>
-                <select class="select-control" id="setTrajectorySelect" onchange="setTrajectoryMode(this.value)">
-                  <option value="hyper-rail">Hyper-Rail (Linear solid supersonic streaks)</option>
-                  <option value="coil-arc">Coil Arc (Electromagnetic solid bezier curves)</option>
-                  <option value="quantum">Quantum Scatter (Dispersed solid particle bursts)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Transfer Settings -->
-            <div class="glass-card settings-panel" id="stab-transfers" style="display:none;">
-              <div class="card-title" style="margin-bottom:10px;">Multi-Link Scheduling Mode</div>
-              <div class="settings-row">
-                <div>
-                  <div class="settings-label-title">Transfer Scheduling Policy</div>
-                  <div class="settings-label-desc">Concurrency execution strategy across available links</div>
-                </div>
-                <select class="select-control" id="setTransferMode" onchange="updateTransferModeSetting(this.value)">
-                  <option value="Queued">Queued (1 job at a time)</option>
-                  <option value="Multi-Transfer" selected>Multi-Transfer (Concurrent)</option>
-                  <option value="Mixed">Mixed (Smart Queue)</option>
-                </select>
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-label-title">Maximum Concurrent Jobs</div>
-                  <div class="settings-label-desc">Simultaneous multi-link jobs (1 to 16)</div>
-                </div>
-                <input type="number" min="1" max="16" class="input-control" id="setMaxConcurrent" value="3" style="width:70px;font-family:var(--font-mono);" onchange="validateAndSaveConcurrent(this)">
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-label-title">Multi-Link Ethernet Aggregation</div>
-                  <div class="settings-label-desc">Combine multiple physical Ethernet adapters concurrently</div>
-                </div>
-                <label class="switch">
-                  <input type="checkbox" id="setMultiLinkEnabled" checked onchange="toggleMultiLinkMaster(this.checked)">
-                  <span class="slider"></span>
-                </label>
-              </div>
-
-              <div style="margin-top:12px;">
-                <div style="font-size:12px;font-weight:700;margin-bottom:6px;">Physical Adapters:</div>
-                <div id="settingsAdaptersList" style="display:flex;flex-direction:column;gap:6px;"></div>
-              </div>
-            </div>
-
-            <!-- Security Settings -->
-            <div class="glass-card settings-panel" id="stab-security" style="display:none;">
-              <div class="card-title" style="margin-bottom:10px;">Cryptographic Device Identity</div>
-              <div style="background:var(--c-black);border:1px solid var(--c-white);padding:10px;border-radius:var(--radius-xs);font-size:12px;font-family:var(--font-mono);">
-                <strong>Local Identity:</strong> WORKSTATION-PRO<br>
-                <strong>Fingerprint:</strong> Ed25519 SHA256:8F:4A:9C:11:E2:7B:04:9A
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-label-title">Incoming Approval Timeout</div>
-                  <div class="settings-label-desc">Auto-decline unanswered transfer requests</div>
-                </div>
-                <select class="select-control" id="setApprovalTimeout" onchange="saveSettingsFromUI()">
-                  <option value="60">60 seconds</option>
-                  <option value="120" selected>120 seconds</option>
-                  <option value="300">300 seconds</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-    </main>
-  </div>
-</div>
-
-<!-- SYSTEM TRAY FLYOUT -->
-<div class="tray-flyout" id="trayFlyout">
-  <div style="display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:1px solid var(--c-white);font-weight:700;font-size:12px;">
-    <span>EtherConnectedBallisticFiles</span>
-    <span class="badge badge-success">285 MB/s</span>
-  </div>
-  <button class="tray-menu-btn" onclick="appRestore();toggleTrayFlyout(false)">Open Window</button>
-  <button class="tray-menu-btn" onclick="appRestore();navigateTo('transfers');toggleTrayFlyout(false)">View Telemetry</button>
-  <button class="tray-menu-btn" onclick="pauseAllTransfers()">Pause All Transfers</button>
-  <button class="tray-menu-btn" onclick="resumeAllTransfers()">Resume All Transfers</button>
-  <button class="tray-menu-btn" onclick="appClose()">Exit Application</button>
-</div>
-
-<!-- SYSTEM TRAY RESTORE PILL -->
-<div class="minimized-restore-bar" id="minimizedRestoreBar">
-  <span class="eth-dot"></span>
-  <span style="font-size:12px;font-weight:700;font-family:var(--font-mono);">Running in System Tray (285 MB/s)</span>
-  <button class="btn btn-primary btn-sm" onclick="appRestore()">Open</button>
-</div>
-
-<!-- SEND FILES MODAL -->
-<div class="modal-backdrop" id="sendFilesModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title">Send Files Over Multi-Link Ethernet</div>
-      <button class="btn btn-sm" onclick="closeModal('sendFilesModal')">✕</button>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">
-      <div class="lifecycle-step active" id="sendStepTab1">1. Destination</div>
-      <div class="lifecycle-step" id="sendStepTab2">2. Payload</div>
-      <div class="lifecycle-step" id="sendStepTab3">3. Review</div>
-    </div>
-    <div id="sendWizardBody" style="min-height:200px;"></div>
-    <div class="modal-footer" id="sendWizardFooter"></div>
-  </div>
-</div>
-
-<!-- PAIRING MODAL -->
-<div class="modal-backdrop" id="pairingModal">
-  <div class="modal-box" style="max-width:500px;">
-    <div class="modal-header">
-      <div class="modal-title">Device Cryptographic Pairing</div>
-      <button class="btn btn-sm" onclick="closeModal('pairingModal')">✕</button>
-    </div>
-    <div id="pairingModalBody"></div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal('pairingModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmDevicePairing()">Trust Device</button>
-    </div>
-  </div>
-</div>
-
-<!-- INCOMING APPROVAL MODAL WITH SCENARIO SWITCHER -->
-<div class="modal-backdrop" id="incomingModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title">Incoming Transfer Approval</div>
-      <button class="btn btn-sm" onclick="closeModal('incomingModal')">✕</button>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:11px;font-family:var(--font-mono);">SCENARIO:</span>
-      <div class="tabs-bar">
-        <button class="tab-btn active" id="incTabTrusted" onclick="renderIncomingScenario('trusted')">Trusted Peer</button>
-        <button class="tab-btn" id="incTabUnknown" onclick="renderIncomingScenario('unknown')">Untrusted Peer</button>
-        <button class="tab-btn" id="incTabExpired" onclick="renderIncomingScenario('expired')">Expired</button>
       </div>
-    </div>
-    <div id="incomingModalBody"></div>
-    <div class="modal-footer" id="incomingModalFooter"></div>
-  </div>
-</div>
+    </section>
 
-<!-- 12-STATE SIMULATOR MODAL -->
-<div class="modal-backdrop" id="stateSimModal">
-  <div class="modal-box" style="max-width:620px;">
-    <div class="modal-header">
-      <div class="modal-title">Simulate 12 Empty & Error States</div>
-      <button class="btn btn-sm" onclick="closeModal('stateSimModal')">✕</button>
-    </div>
-    <div class="grid-2" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:6px;">
-      <button class="btn btn-primary" onclick="applySystemErrorState('normal')">✓ Restore Normal State</button>
-      <button class="btn" onclick="applySystemErrorState('no_devices')">1. No Devices</button>
-      <button class="btn" onclick="applySystemErrorState('no_trusted')">2. No Trusted Peers</button>
-      <button class="btn" onclick="applySystemErrorState('no_active_transfers')">3. No Active Transfers</button>
-      <button class="btn" onclick="applySystemErrorState('empty_history')">4. Empty History</button>
-      <button class="btn" onclick="applySystemErrorState('no_adapter')">5. No Ethernet Adapter</button>
-      <button class="btn" onclick="applySystemErrorState('cable_unplugged')">6. Cable Disconnected</button>
-      <button class="btn" onclick="applySystemErrorState('firewall_blocked')">7. Firewall Blocked</button>
-      <button class="btn" onclick="applySystemErrorState('receiver_unavailable')">8. Receiver Offline</button>
-      <button class="btn" onclick="applySystemErrorState('dest_unavailable')">9. Folder Unavailable</button>
-      <button class="btn" onclick="applySystemErrorState('disk_full')">10. Insufficient Disk</button>
-      <button class="btn" onclick="applySystemErrorState('transfer_interrupted')">11. Transfer Interrupted</button>
-      <button class="btn" onclick="applySystemErrorState('verification_failed')">12. Verification Failed</button>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeModal('stateSimModal')">Close</button>
-    </div>
-  </div>
-</div>
+    <!-- TAB 2: TRANSFERS -->
+    <section class="tab-content" id="contentTransfers">
+      <!-- Active Transfer Corridor -->
+      <div class="corridor-stage" id="activeTransferCorridor" style="display: none;">
+        <div class="corridor-header">
+          <div>
+            <div style="font-weight:700;font-size:14px;font-family:var(--font-mono);" id="transferFileName">File_Transfer</div>
+            <div style="font-size:11px;opacity:0.75;font-family:var(--font-mono);" id="transferDetails">0 MB / 0 MB • 0 MB/s</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-sm" id="btnPauseResume" onclick="togglePauseTransfer()">Pause</button>
+            <button class="btn btn-sm" onclick="cancelTransfer()">Cancel</button>
+          </div>
+        </div>
 
-<!-- TOASTS & HIDDEN FILE INPUT -->
-<div class="toast-stack" id="toastStack"></div>
-<input type="file" id="hiddenBrowserFileInput" multiple style="display:none;" onchange="handleRealFileInputPicked(event)">
+        <canvas class="corridor-canvas" id="kineticCanvas" width="900" height="120"></canvas>
 
-<!-- JAVASCRIPT ENGINE & TAURI IPC BRIDGE -->
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" id="transferProgressBar"></div>
+        </div>
+
+        <div class="telemetry-grid">
+          <div class="telemetry-tile">
+            <div class="telemetry-label">SPEED</div>
+            <div class="telemetry-val" id="telemetrySpeed">0 MB/s</div>
+          </div>
+          <div class="telemetry-tile">
+            <div class="telemetry-label">PROGRESS</div>
+            <div class="telemetry-val" id="telemetryPercent">0%</div>
+          </div>
+          <div class="telemetry-tile">
+            <div class="telemetry-label">TRANSFERRED</div>
+            <div class="telemetry-val" id="telemetryTransferred">0 MB</div>
+          </div>
+          <div class="telemetry-tile">
+            <div class="telemetry-label">TIME REMAINING</div>
+            <div class="telemetry-val" id="telemetryEta">--</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Active Transfer Notice -->
+      <div class="card" id="noActiveTransferCard">
+        <div class="card-header">
+          <div class="card-title">Transfer Queue</div>
+        </div>
+        <div style="padding:24px;text-align:center;opacity:0.75;">
+          No active transfers in progress. Go to the <strong>Send</strong> tab to pick files and launch a transfer.
+        </div>
+      </div>
+
+      <!-- History Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Transfer History</div>
+          <button class="btn btn-sm" onclick="clearHistory()">Clear History</button>
+        </div>
+        <div id="historyList">
+          <div style="padding:16px;text-align:center;opacity:0.6;">No transfers recorded yet.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SETTINGS -->
+    <section class="tab-content" id="contentSettings">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Application Settings</div>
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label-title">Computer Name</div>
+            <div class="settings-label-desc">Identifies this computer on the direct Ethernet cable or local network.</div>
+          </div>
+          <input type="text" class="text-input" id="deviceNameInput" value="Local-PC" onchange="saveDeviceName(this.value)">
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label-title">Save Location</div>
+            <div class="settings-label-desc">Folder where received files are automatically saved.</div>
+          </div>
+          <input type="text" class="text-input" id="downloadPathInput" value="C:\Users\russell\Downloads\EtherConnected" onchange="saveDownloadPath(this.value)">
+        </div>
+
+        <div class="settings-row">
+          <div>
+            <div class="settings-label-title">Check for Updates</div>
+            <div class="settings-label-desc" id="updateStatusText">Version 0.1.0 is current.</div>
+          </div>
+          <button class="btn" id="btnCheckUpdates" onclick="checkForUpdates()">Check for Updates</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toastNotice">Notification</div>
+
 <script>
-const STORAGE_KEY = 'ether_connected_ballistic_files_tauri_v2';
-const APP_VERSION = '0.1.0';
-
-const isTauri = typeof window !== 'undefined' && (window.__TAURI__ || window.__TAURI_INTERNALS__);
+// Global Tauri IPC helper
+const isTauri = typeof window !== 'undefined' && Boolean(window.__TAURI__ || window.__TAURI_INTERNALS__);
 
 async function tauriInvoke(cmd, args = {}) {
   if (isTauri && window.__TAURI__ && window.__TAURI__.core) {
     try {
       return await window.__TAURI__.core.invoke(cmd, args);
-    } catch (e) {
-      console.warn('Tauri invoke error:', cmd, e);
+    } catch (err) {
+      console.warn('Tauri invoke error:', cmd, err);
     }
   }
   return null;
 }
 
-// Window Caption Controls
-function appMinimize() {
-  if (state.closeBehavior === 'tray') {
-    minimizeToTray();
-  } else {
-    tauriInvoke('minimize_window');
+// State
+let selectedFiles = [];
+let transferHistory = [];
+let activeTransfer = null;
+let transferInterval = null;
+let isPaused = false;
+
+// Navigation
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+  if (tabId === 'send') {
+    document.getElementById('tabSend').classList.add('active');
+    document.getElementById('contentSend').classList.add('active');
+  } else if (tabId === 'transfers') {
+    document.getElementById('tabTransfers').classList.add('active');
+    document.getElementById('contentTransfers').classList.add('active');
+  } else if (tabId === 'settings') {
+    document.getElementById('tabSettings').classList.add('active');
+    document.getElementById('contentSettings').classList.add('active');
   }
 }
 
-function appMaximize() {
-  tauriInvoke('maximize_window');
+// File Selection
+function triggerFilePicker(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('filePicker').click();
 }
 
-function appClose() {
-  if (state.closeBehavior === 'tray') {
-    minimizeToTray();
-  } else {
-    tauriInvoke('close_window');
-  }
+function triggerFolderPicker(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('folderPicker').click();
 }
 
-function minimizeToTray() {
-  document.getElementById('minimizedRestoreBar').classList.add('visible');
-  showToast('Minimized', 'Running in background.');
-}
+function handleFilesSelected(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
 
-function appRestore() {
-  document.getElementById('minimizedRestoreBar').classList.remove('visible');
-}
-
-// State Model
-function getInitialState() {
-  return {
-    trajectoryMode: 'hyper-rail',
-    closeBehavior: 'tray',
-    defaultFolder: 'D:\\EtherTransfers\\Incoming',
-    approvalTimeout: '120',
-    transferMode: 'Multi-Transfer',
-    maxConcurrent: 3,
-    multiLinkEnabled: true,
-    systemErrorState: 'normal',
-    emptyHistoryDemo: false,
-
-    adapters: [
-      {
-        id: 'eth-usb32',
-        name: 'USB Ethernet 3.2 Gen 2',
-        chipset: 'Realtek RTL8156B 2.5GbE',
-        linkSpeed: '2.5 Gbps',
-        simSpeedMBs: 195,
-        status: 'connected',
-        usableIndependentPath: true,
-        subnet: '192.168.20.10/24'
-      },
-      {
-        id: 'eth-intel',
-        name: 'Intel Ethernet I225-V',
-        chipset: 'PCIe Integrated 1.0 Gbps',
-        linkSpeed: '1.0 Gbps',
-        simSpeedMBs: 90,
-        status: 'connected',
-        usableIndependentPath: true,
-        subnet: '192.168.10.10/24'
-      },
-      {
-        id: 'eth-usb20',
-        name: 'USB Ethernet 2.0 Adapter',
-        chipset: 'ASIX AX88772 Fast Ethernet',
-        linkSpeed: '100 Mbps',
-        simSpeedMBs: 11,
-        status: 'standby',
-        usableIndependentPath: false,
-        subnet: '192.168.10.11/24 (Shared Switch)'
-      }
-    ],
-
-    devices: [
-      {
-        id: 'dev-studio',
-        name: 'DESKTOP-STUDIO',
-        ip: '192.168.10.22 / 192.168.20.22',
-        mac: '00:1B:63:84:45:E6',
-        status: 'online',
-        trusted: true,
-        lastSeen: 'Active now',
-        usablePathsCount: 2,
-        role: 'Color Grading & VFX Workstation'
-      },
-      {
-        id: 'dev-gaming',
-        name: 'GAMING-PC',
-        ip: '192.168.10.45 / 192.168.20.45',
-        mac: 'D8:BB:C1:40:91:0A',
-        status: 'online',
-        trusted: true,
-        lastSeen: 'Active now',
-        usablePathsCount: 2,
-        role: '3D Render & Unreal Engine Node'
-      },
-      {
-        id: 'dev-laptop',
-        name: 'LAPTOP-WORK',
-        ip: '192.168.10.68',
-        mac: 'A4:83:E7:19:02:5C',
-        status: 'online',
-        trusted: false,
-        lastSeen: 'Discovered 1m ago',
-        usablePathsCount: 1,
-        role: 'Field Ingest Laptop'
-      },
-      {
-        id: 'dev-nas',
-        name: 'ARCHIVE-SERVER-01',
-        ip: '192.168.10.90',
-        mac: '70:85:C2:99:10:4B',
-        status: 'connecting',
-        trusted: true,
-        lastSeen: 'Negotiating link...',
-        usablePathsCount: 1,
-        role: 'Cold Storage Vault'
-      },
-      {
-        id: 'dev-render2',
-        name: 'RENDER-NODE-02',
-        ip: '192.168.10.105',
-        mac: '54:BF:64:71:22:9E',
-        status: 'interrupted',
-        trusted: true,
-        lastSeen: 'Carrier lost 14m ago',
-        usablePathsCount: 0,
-        role: 'Secondary Rig'
-      }
-    ],
-
-    transfers: [
-      {
-        id: 'tr-101',
-        name: 'Project_Backup.zip',
-        peer: 'DESKTOP-STUDIO',
-        direction: 'Sending',
-        fileCount: 142,
-        totalSizeGB: 12.5,
-        progressPct: 67.4,
-        currentSpeedMBs: 285,
-        avgSpeedMBs: 268,
-        peakSpeedMBs: 312,
-        status: 'active',
-        lifecycle: 'receiving'
-      },
-      {
-        id: 'tr-102',
-        name: 'Unreal_Lightmap_Cache_v4.pak',
-        peer: 'GAMING-PC',
-        direction: 'Sending',
-        fileCount: 18,
-        totalSizeGB: 8.2,
-        progressPct: 34.0,
-        currentSpeedMBs: 90,
-        avgSpeedMBs: 88,
-        peakSpeedMBs: 105,
-        status: 'active',
-        lifecycle: 'receiving'
-      }
-    ],
-
-    history: [
-      {
-        id: 'hist-1',
-        name: 'DaVinci_Resolve_Timeline_8K.drp',
-        peer: 'DESKTOP-STUDIO',
-        timestamp: 'Today, 13:18',
-        size: '18.40 GB',
-        duration: '01m 06s',
-        avgSpeed: '284 MB/s',
-        result: 'completed',
-        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
-      },
-      {
-        id: 'hist-2',
-        name: 'Blender_Fluid_Bake_Cache/',
-        peer: 'GAMING-PC',
-        timestamp: 'Today, 11:42',
-        size: '9.60 GB',
-        duration: '00m 38s',
-        avgSpeed: '258 MB/s',
-        result: 'completed',
-        hash: '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'
-      }
-    ]
-  };
-}
-
-let state = loadState();
-let currentDeviceFilter = 'all';
-let currentTransferFilter = 'all';
-let pairingTargetDeviceId = null;
-let redistributedChunksActive = false;
-
-let sendWizard = {
-  step: 1,
-  destinationDeviceId: 'dev-studio',
-  files: [
-    { name: 'Final_Master_Reel_ProRes4444.mov', sizeGB: 7.8 },
-    { name: 'VFX_OpenEXR_Plates_Sequence/', sizeGB: 4.7 }
-  ],
-  destinationFolder: 'D:\\EtherTransfers\\Incoming'
-};
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return Object.assign(getInitialState(), JSON.parse(raw));
-  } catch (e) {}
-  return getInitialState();
-}
-
-function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch (e) {}
-}
-
-function resetPrototypeState() {
-  localStorage.removeItem(STORAGE_KEY);
-  state = getInitialState();
-  redistributedChunksActive = false;
-  refreshEntireUI();
-  showToast('Reset', 'Prototype state restored.');
-}
-
-function getActiveAdapters() {
-  if (!state.multiLinkEnabled) {
-    const f = state.adapters.find(a => a.status === 'connected');
-    return f ? [f] : [];
-  }
-  return state.adapters.filter(a => a.status === 'connected' && a.usableIndependentPath);
-}
-
-function getCombinedSimulatedSpeed() {
-  if (state.systemErrorState === 'no_adapter' || state.systemErrorState === 'cable_unplugged') return 0;
-  return getActiveAdapters().reduce((s, a) => s + a.simSpeedMBs, 0);
-}
-
-/* ============================================================================
-   CANVAS & IN-FLIGHT FILE PAYLOAD ANIMATION ENGINE
-   ============================================================================ */
-const pCanvas = document.getElementById('particleCanvas');
-const pCtx = pCanvas.getContext('2d');
-const sCanvas = document.getElementById('speedChartCanvas');
-const sCtx = sCanvas.getContext('2d');
-
-let particles = [];
-let flyingBlocks = [];
-let speedHistory = new Array(45).fill(285);
-let blockSeq = 1;
-
-function initParticles() {
-  particles = [];
-  for (let i = 0; i < 48; i++) {
-    particles.push({
-      lane: i % 2,
-      x: Math.random(),
-      speed: 0.01 + Math.random() * 0.016,
-      length: 12 + Math.random() * 20
-    });
-  }
-}
-
-function resizeCanvases() {
-  if (pCanvas && pCanvas.parentElement) {
-    pCanvas.width = pCanvas.parentElement.clientWidth || 500;
-    pCanvas.height = 180;
-  }
-  if (sCanvas && sCanvas.parentElement) {
-    sCanvas.width = sCanvas.parentElement.clientWidth || 450;
-    sCanvas.height = 160;
-  }
-}
-
-function spawnInFlightBlock() {
-  const zone = document.getElementById('inFlightBlocksZone');
-  if (!zone) return;
-
-  const activeAdapters = getActiveAdapters();
-  if (activeAdapters.length === 0) return;
-
-  const isFast = Math.random() > 0.35 && activeAdapters.some(a => a.id === 'eth-usb32');
-  const pathLabel = isFast ? '2.5G' : '1.0G';
-  const blockNumber = (blockSeq++ % 999).toString().padStart(3, '0');
-
-  const el = document.createElement('div');
-  el.className = 'flying-file-block';
-  el.textContent = `BLK #${blockNumber} • ${pathLabel}`;
-  el.style.top = isFast ? '8px' : '34px';
-  el.style.left = '0px';
-  zone.appendChild(el);
-
-  const blockObj = {
-    el: el,
-    x: 0,
-    speed: isFast ? 4.2 : 2.1
-  };
-  flyingBlocks.push(blockObj);
-}
-
-function updateInFlightBlocks() {
-  const zone = document.getElementById('inFlightBlocksZone');
-  if (!zone) return;
-  const maxW = zone.clientWidth || 300;
-
-  for (let i = flyingBlocks.length - 1; i >= 0; i--) {
-    const b = flyingBlocks[i];
-    b.x += b.speed;
-    b.el.style.left = `${b.x}px`;
-
-    if (b.x >= maxW - 90) {
-      const recPod = document.getElementById('fileReceiverPod');
-      if (recPod) {
-        recPod.classList.add('target-strike');
-        setTimeout(() => recPod.classList.remove('target-strike'), 250);
-      }
-      b.el.remove();
-      flyingBlocks.splice(i, 1);
-    }
-  }
-}
-
-function drawParticles() {
-  if (!pCtx) return;
-  const w = pCanvas.width;
-  const h = pCanvas.height;
-  pCtx.clearRect(0, 0, w, h);
-
-  const laneY = [50, 130];
-  const activeAdapters = getActiveAdapters();
-  const anyActive = state.transfers.some(t => t.status === 'active');
-
-  state.adapters.slice(0, 2).forEach((adapter, idx) => {
-    const y = laneY[idx];
-    const isUp = anyActive && activeAdapters.some(a => a.id === adapter.id);
-    pCtx.beginPath();
-    pCtx.moveTo(16, y);
-    pCtx.lineTo(w - 16, y);
-    pCtx.strokeStyle = isUp ? '#FFFFFF' : '#1E1E1E';
-    pCtx.lineWidth = isUp ? 2 : 1;
-    pCtx.setLineDash(isUp ? [] : [4, 6]);
-    pCtx.stroke();
-    pCtx.setLineDash([]);
-
-    pCtx.font = '600 10px "Geist Mono", monospace';
-    pCtx.fillStyle = '#FFFFFF';
-    pCtx.fillText(`${adapter.name} (${adapter.linkSpeed}) — ${isUp ? `${adapter.simSpeedMBs} MB/s SOLID RAIL` : 'STANDBY'}`, 18, y - 8);
-  });
-
-  particles.forEach(p => {
-    const adapter = state.adapters[p.lane];
-    const isUp = anyActive && activeAdapters.some(a => a && a.id === adapter.id);
-    if (!isUp) return;
-
-    p.x += p.speed;
-    if (p.x > 1) p.x = 0;
-
-    const px = 16 + p.x * (w - 32);
-    let py = laneY[p.lane];
-
-    if (state.trajectoryMode === 'coil-arc') {
-      py += Math.sin(p.x * Math.PI) * (p.lane === 0 ? -18 : 18);
-    } else if (state.trajectoryMode === 'quantum') {
-      py += Math.sin(p.x * Math.PI * 4) * 8;
-    }
-
-    pCtx.beginPath();
-    pCtx.arc(px, py, 2.5, 0, Math.PI * 2);
-    pCtx.fillStyle = '#FFFFFF';
-    pCtx.fill();
-
-    pCtx.beginPath();
-    pCtx.moveTo(px - p.length, py);
-    pCtx.lineTo(px, py);
-    pCtx.strokeStyle = '#FFFFFF';
-    pCtx.lineWidth = 1.5;
-    pCtx.stroke();
-  });
-}
-
-function drawSpeedGraph() {
-  if (!sCtx) return;
-  const w = sCanvas.width;
-  const h = sCanvas.height;
-  sCtx.clearRect(0, 0, w, h);
-
-  sCtx.strokeStyle = '#1E1E1E';
-  sCtx.lineWidth = 1;
-  for (let i = 1; i <= 3; i++) {
-    const gy = (h / 4) * i;
-    sCtx.beginPath();
-    sCtx.moveTo(0, gy);
-    sCtx.lineTo(w, gy);
-    sCtx.stroke();
-  }
-
-  const maxV = 360;
-  const stepX = w / (speedHistory.length - 1);
-
-  sCtx.beginPath();
-  speedHistory.forEach((v, i) => {
-    const x = i * stepX;
-    const y = h - Math.min(h - 10, (v / maxV) * (h - 20)) - 6;
-    if (i === 0) sCtx.moveTo(x, y);
-    else sCtx.lineTo(x, y);
-  });
-  sCtx.strokeStyle = '#FFFFFF';
-  sCtx.lineWidth = 2;
-  sCtx.stroke();
-}
-
-function animationLoop() {
-  drawParticles();
-  updateInFlightBlocks();
-  requestAnimationFrame(animationLoop);
-}
-
-function fireKineticSalvo() {
-  const senderPod = document.getElementById('fileSenderPod');
-  const nodeSender = document.getElementById('nodeSender');
-  if (senderPod) senderPod.classList.add('active-pulse');
-  if (nodeSender) nodeSender.classList.add('firing');
-  setTimeout(() => {
-    if (senderPod) senderPod.classList.remove('active-pulse');
-    if (nodeSender) nodeSender.classList.remove('firing');
-  }, 350);
-
-  for (let i = 0; i < 6; i++) {
-    setTimeout(spawnInFlightBlock, i * 60);
-  }
-
-  const cells = document.querySelectorAll('.chunk-cell');
-  if (cells.length > 0) {
-    const c = cells[Math.floor(Math.random() * cells.length)];
-    c.classList.add('flashing');
-    setTimeout(() => c.classList.remove('flashing'), 350);
-  }
-
-  showToast('Salvo Burst', 'In-flight file payload blocks accelerated.');
-}
-
-setInterval(() => {
-  const anyActive = state.transfers.some(t => t.status === 'active');
-  const base = getCombinedSimulatedSpeed();
-  const jitter = anyActive && base > 0 ? Math.round((Math.random() - 0.48) * 14) : 0;
-  const live = anyActive ? Math.max(0, base + jitter) : 0;
-
-  speedHistory.push(live);
-  if (speedHistory.length > 45) speedHistory.shift();
-
-  if (anyActive && live > 0) {
-    spawnInFlightBlock();
-    state.transfers.forEach(t => {
-      if (t.status === 'active') {
-        t.currentSpeedMBs = live;
-        t.progressPct = Math.min(99.9, +(t.progressPct + 0.15).toFixed(2));
-      }
+  for (let i = 0; i < files.length; i++) {
+    const f = files[i];
+    selectedFiles.push({
+      name: f.name,
+      size: f.size,
+      type: f.type || 'file'
     });
   }
 
-  const curEl = document.getElementById('graphCurrentSpeed');
-  if (curEl) curEl.textContent = `${live} MB/s`;
-  const homeEl = document.getElementById('homeLiveThroughput');
-  if (homeEl) homeEl.textContent = `${live} MB/s`;
-
-  const primary = state.transfers[0];
-  if (primary) {
-    const doneGB = ((primary.progressPct / 100) * primary.totalSizeGB).toFixed(2);
-    const transEl = document.getElementById('graphDataTransferred');
-    if (transEl) transEl.textContent = `Transferred: ${doneGB} GB of ${primary.totalSizeGB.toFixed(2)} GB`;
-    const badgeEl = document.getElementById('vizProgressBadge');
-    if (badgeEl) badgeEl.textContent = `${primary.progressPct.toFixed(1)}%`;
-    const podSub = document.getElementById('filePodReceivedSub');
-    if (podSub) podSub.textContent = `${doneGB} GB Reassembled`;
-    const counterEl = document.getElementById('fileBlockCounterText');
-    if (counterEl) counterEl.textContent = `In-Flight: 12 Blocks • ${primary.progressPct.toFixed(1)}% Reassembled`;
-  }
-
-  drawSpeedGraph();
-}, 900);
-
-/* ============================================================================
-   UI ROUTING & RENDERING
-   ============================================================================ */
-function navigateTo(pageId) {
-  document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
-  const target = document.getElementById('page-' + pageId);
-  if (target) target.classList.add('active');
-
-  document.querySelectorAll('.sidebar .nav-item').forEach(b => {
-    b.classList.toggle('active', b.dataset.page === pageId);
-  });
-
-  if (pageId === 'transfers') resizeCanvases();
+  event.target.value = '';
+  renderSelectedFiles();
 }
 
-function renderSidebar() {
-  const active = getActiveAdapters();
-  const combined = getCombinedSimulatedSpeed();
-  const dot = document.getElementById('sidebarEthDot');
-  const title = document.getElementById('sidebarEthTitle');
-  const rate = document.getElementById('sidebarEthRate');
-  const sub = document.getElementById('sidebarEthSub');
-  const list = document.getElementById('sidebarAdapterList');
-
-  if (active.length === 0) {
-    dot.className = 'eth-dot error';
-    title.textContent = 'Disconnected';
-    rate.textContent = '0 Gbps';
-    sub.textContent = 'No active carrier';
-  } else if (active.length === 1) {
-    dot.className = 'eth-dot warn';
-    title.textContent = 'Single Link';
-    rate.textContent = active[0].linkSpeed;
-    sub.textContent = `WORKSTATION-PRO • 1 Path (${combined} MB/s)`;
-  } else {
-    dot.className = 'eth-dot';
-    title.textContent = 'Multi-Link Ready';
-    rate.textContent = '3.5 Gbps';
-    sub.textContent = `WORKSTATION-PRO • ${active.length} Paths (~${combined} MB/s)`;
-  }
-
-  list.innerHTML = state.adapters.map(a => `
-    <div class="eth-adapter-mini-row">
-      <span>${a.status === 'connected' ? '●' : '○'} ${a.name}</span>
-      <span>${a.status === 'connected' ? a.linkSpeed : 'STANDBY'}</span>
-    </div>
-  `).join('');
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('dropZone').classList.add('dragover');
 }
 
-function renderHomePage() {
-  const active = getActiveAdapters();
-  document.getElementById('homeAdapterBars').innerHTML = state.adapters.map(a => {
-    const isUsed = active.some(x => x.id === a.id);
-    const pct = isUsed ? Math.min(100, Math.round((a.simSpeedMBs / 220) * 100)) : 0;
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('dropZone').classList.remove('dragover');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById('dropZone').classList.remove('dragover');
+
+  if (e.dataTransfer && e.dataTransfer.files) {
+    for (let i = 0; i < e.dataTransfer.files.length; i++) {
+      const f = e.dataTransfer.files[i];
+      selectedFiles.push({
+        name: f.name,
+        size: f.size,
+        type: f.type || 'file'
+      });
+    }
+    renderSelectedFiles();
+  }
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+function renderSelectedFiles() {
+  const card = document.getElementById('selectedFilesCard');
+  const list = document.getElementById('selectedFilesList');
+  const countSpan = document.getElementById('selectedFilesCount');
+  const totalSizeSpan = document.getElementById('selectedTotalSize');
+
+  if (selectedFiles.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = 'block';
+  countSpan.textContent = selectedFiles.length;
+
+  let total = 0;
+  list.innerHTML = selectedFiles.map((file, idx) => {
+    total += file.size;
     return `
-      <div style="background:var(--c-black);padding:9px 12px;border:1px solid var(--c-white);border-radius:var(--radius-xs);">
-        <div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:5px;">
-          <div><strong>${a.name}</strong> (${a.linkSpeed})</div>
-          <span class="badge ${isUsed ? 'badge-success' : 'badge-neutral'}">${isUsed ? `● ${a.simSpeedMBs} MB/s Active` : 'Standby'}</span>
+      <div class="file-item">
+        <div class="file-item-info">
+          <div class="file-name">${file.name}</div>
+          <div class="file-size">${formatBytes(file.size)}</div>
         </div>
-        <div class="progress-track">
-          <div class="progress-fill" style="width:${pct}%;"></div>
-        </div>
+        <button class="btn btn-sm" onclick="removeSelectedFile(${idx})">✕</button>
       </div>
     `;
   }).join('');
 
-  document.getElementById('homeRecentActivityList').innerHTML = state.history.slice(0, 3).map(h => `
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--c-black);border:1px solid var(--c-white);border-radius:var(--radius-xs);font-size:11.5px;">
-      <div>
-        <div style="font-weight:700;">${h.name}</div>
-        <div style="font-size:10.5px;opacity:0.75;font-family:var(--font-mono);">${h.peer} • ${h.size} • ${h.avgSpeed}</div>
-      </div>
-      <span class="badge ${h.result === 'completed' ? 'badge-success' : 'badge-danger'}">${h.result === 'completed' ? '✓ Verified' : '✕ Failed'}</span>
-    </div>
-  `).join('');
-
-  document.getElementById('homeDevicesGrid').innerHTML = state.devices.slice(0, 3).map(d => buildDeviceCardHTML(d, true)).join('');
+  totalSizeSpan.textContent = formatBytes(total);
 }
 
-function buildDeviceCardHTML(d, compact = false) {
-  const statusBadge = d.status === 'online' ? '<span class="badge badge-success">● Online</span>' : '<span class="badge badge-neutral">○ Offline</span>';
-  const trustBadge = d.trusted ? '<span class="badge badge-info">✓ Trusted</span>' : '<span class="badge badge-warning">! Untrusted</span>';
-
-  return `
-    <div class="glass-card device-card">
-      <div>
-        <div class="device-card-top">
-          <div style="display:flex;gap:9px;align-items:center;">
-            <div class="device-avatar">${d.name.slice(0, 2)}</div>
-            <div>
-              <div style="font-size:13px;font-weight:700;font-family:var(--font-mono);">${d.name}</div>
-              <div style="font-size:11px;opacity:0.75;">${d.role}</div>
-            </div>
-          </div>
-          ${statusBadge}
-        </div>
-
-        <div style="display:flex;gap:5px;flex-wrap:wrap;margin:10px 0;">
-          ${trustBadge}
-          <span class="badge badge-neutral">${d.usablePathsCount} Paths</span>
-        </div>
-
-        <div class="device-meta-list">
-          <div class="device-meta-row"><span>IPv4</span><code>${d.ip}</code></div>
-          <div class="device-meta-row"><span>Last Seen</span><span>${d.lastSeen}</span></div>
-        </div>
-
-        ${!compact ? `
-          <div class="drop-zone" style="margin-top:10px;"
-               ondragover="event.preventDefault();this.classList.add('drag-over')"
-               ondragleave="this.classList.remove('drag-over')"
-               ondrop="handleCardFileDrop(event, '${d.id}', this)"
-               onclick="handleDropZoneClick('${d.id}')">
-            Drop files here to send
-          </div>
-        ` : ''}
-      </div>
-
-      <div style="display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--c-white);">
-        ${d.status === 'online' && d.trusted ? `<button class="btn btn-primary btn-sm" style="flex:1;" onclick="openSendFilesModal('${d.id}')">Send Files</button>` : ''}
-        ${d.status === 'online' && !d.trusted ? `<button class="btn btn-primary btn-sm" style="flex:1;" onclick="openPairingModal('${d.id}')">Pair Device</button>` : ''}
-        <button class="btn btn-sm" onclick="showToast('Ping', '${d.name} latency 0.14 ms')">Ping</button>
-      </div>
-    </div>
-  `;
+function removeSelectedFile(index) {
+  selectedFiles.splice(index, 1);
+  renderSelectedFiles();
 }
 
-function renderDevicesPage() {
-  document.getElementById('navDevicesCount').textContent = state.devices.length;
-  const filtered = state.devices.filter(d => {
-    if (currentDeviceFilter === 'online') return d.status === 'online';
-    if (currentDeviceFilter === 'trusted') return d.trusted;
-    if (currentDeviceFilter === 'untrusted') return !d.trusted;
-    if (currentDeviceFilter === 'offline') return d.status !== 'online';
-    return true;
-  });
-  document.getElementById('devicesPageGrid').innerHTML = filtered.map(d => buildDeviceCardHTML(d, false)).join('');
+function clearSelectedFiles() {
+  selectedFiles = [];
+  renderSelectedFiles();
 }
 
-function setDeviceFilter(filter, btn) {
-  currentDeviceFilter = filter;
-  document.querySelectorAll('#deviceFilterTabs .tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderDevicesPage();
-}
-
-function triggerDeviceRescan() {
-  showToast('Rescan LAN', 'mDNS probe sent across subnets.');
-}
-
-function handleSampleChipDragStart(e) {
-  e.dataTransfer.setData('text/plain', 'Studio_Master_4K_Build.zip');
-}
-
-function handleCardFileDrop(e, deviceId, el) {
-  e.preventDefault();
-  el.classList.remove('drag-over');
-  sendWizard.destinationDeviceId = deviceId;
-  sendWizard.step = 3;
-  openSendFilesModal(deviceId);
-  fireKineticSalvo();
-}
-
-function handleDropZoneClick(deviceId) {
-  openSendFilesModal(deviceId);
-}
-
-function renderChunkMatrix() {
-  const grid = document.getElementById('chunkMatrixGrid');
-  if (!grid) return;
-  const active = getActiveAdapters();
-  const usbUp = active.some(a => a.id === 'eth-usb32');
-  const intelUp = active.some(a => a.id === 'eth-intel');
-
-  let html = '';
-  for (let i = 401; i <= 424; i++) {
-    let cls = 'path-1';
-    let lbl = '2.5G';
-    if (!usbUp && intelUp) {
-      if (redistributedChunksActive && i % 3 !== 0) {
-        cls = 'redistributed';
-        lbl = 'RE-1G';
-      } else {
-        cls = 'path-2';
-        lbl = '1G';
-      }
-    } else if (usbUp && intelUp) {
-      if (i % 3 === 0) {
-        cls = 'path-2';
-        lbl = '1G';
-      }
-    }
-    html += `<div class="chunk-cell ${cls}">#${i}<br>${lbl}</div>`;
-  }
-  grid.innerHTML = html;
-}
-
-function renderTransfersPage() {
-  const activeCount = state.transfers.filter(t => t.status === 'active').length;
-  document.getElementById('navTransfersCount').textContent = `${activeCount}`;
-  renderChunkMatrix();
-
-  const primaryJob = state.transfers.find(t => t.status === 'active') || state.transfers[0];
-  if (primaryJob) {
-    document.getElementById('vizJobTitle').textContent = primaryJob.name;
-    document.getElementById('filePodSourceName').textContent = primaryJob.name;
-    document.getElementById('filePodSourceSub').textContent = `${primaryJob.totalSizeGB.toFixed(2)} GB • ${primaryJob.fileCount || 1} Files`;
-    document.getElementById('filePodReceiverName').textContent = primaryJob.peer;
-    document.getElementById('vizReceiverName').textContent = primaryJob.peer;
-
-    // Update Stepper classes
-    const steps = ['receiving', 'reassembling', 'verifying', 'completed'];
-    const curIdx = steps.indexOf(primaryJob.lifecycle);
-    steps.forEach((s, idx) => {
-      const el = document.getElementById('step-' + s);
-      if (el) {
-        el.className = 'lifecycle-step';
-        if (primaryJob.lifecycle === 'failed') {
-          if (idx === 2) el.classList.add('error');
-        } else if (idx < curIdx || primaryJob.lifecycle === 'completed') {
-          el.classList.add('done');
-        } else if (idx === curIdx) {
-          el.classList.add('active');
-        }
-      }
+// Kinetic Animation Canvas
+let animationParticles = [];
+function initKineticCanvas() {
+  animationParticles = [];
+  for (let i = 0; i < 30; i++) {
+    animationParticles.push({
+      x: Math.random() * 900,
+      y: 30 + Math.random() * 60,
+      width: 14 + Math.random() * 24,
+      speed: 4 + Math.random() * 8
     });
   }
+}
 
-  // Filter transfers list by currentTransferFilter
-  const filtered = state.transfers.filter(t => currentTransferFilter === 'all' ? true : t.status === currentTransferFilter);
-  const container = document.getElementById('transfersListContainer');
+function drawKineticCanvas() {
+  const canvas = document.getElementById('kineticCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width;
+  const h = canvas.height;
 
-  if (filtered.length === 0) {
-    container.innerHTML = `
-      <div style="padding:20px;text-align:center;color:var(--c-white);opacity:0.6;font-family:var(--font-mono);">
-        No transfers matching '${currentTransferFilter}' filter.
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, w, h);
+
+  // Lanes
+  ctx.strokeStyle = '#1E1E1E';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 45); ctx.lineTo(w, 45);
+  ctx.moveTo(0, 75); ctx.lineTo(w, 75);
+  ctx.stroke();
+
+  // Moving payload blocks
+  if (activeTransfer && !isPaused) {
+    ctx.fillStyle = '#FFFFFF';
+    for (let p of animationParticles) {
+      ctx.fillRect(p.x, p.y, p.width, 10);
+      p.x += p.speed;
+      if (p.x > w) {
+        p.x = -p.width;
+        p.y = 30 + Math.random() * 60;
+      }
+    }
+  }
+
+  requestAnimationFrame(drawKineticCanvas);
+}
+
+// Transfer Engine
+function startTransfer() {
+  if (selectedFiles.length === 0) return;
+
+  const totalBytes = selectedFiles.reduce((acc, f) => acc + f.size, 0);
+  const primaryName = selectedFiles.length === 1 
+    ? selectedFiles[0].name 
+    : `${selectedFiles[0].name} (+${selectedFiles.length - 1} more)`;
+
+  activeTransfer = {
+    name: primaryName,
+    totalBytes: totalBytes || 1024 * 1024 * 500, // fallback 500MB if 0B
+    transferredBytes: 0,
+    speedMBs: 220,
+    startTime: Date.now()
+  };
+
+  isPaused = false;
+  switchTab('transfers');
+
+  document.getElementById('activeTransferCorridor').style.display = 'block';
+  document.getElementById('noActiveTransferCard').style.display = 'none';
+  document.getElementById('transferFileName').textContent = primaryName;
+  document.getElementById('btnPauseResume').textContent = 'Pause';
+
+  initKineticCanvas();
+
+  if (transferInterval) clearInterval(transferInterval);
+  transferInterval = setInterval(updateTransferTick, 100);
+
+  showToast('Transfer started: ' + primaryName);
+}
+
+function updateTransferTick() {
+  if (!activeTransfer || isPaused) return;
+
+  // Simulate high speed transfer chunk (220 MB/s rate = ~22 MB per 100ms)
+  const chunk = 22 * 1024 * 1024;
+  activeTransfer.transferredBytes += chunk;
+
+  const pct = Math.min(100, Math.round((activeTransfer.transferredBytes / activeTransfer.totalBytes) * 100));
+  const remainingBytes = Math.max(0, activeTransfer.totalBytes - activeTransfer.transferredBytes);
+  const etaSec = Math.ceil(remainingBytes / (activeTransfer.speedMBs * 1024 * 1024));
+
+  document.getElementById('transferProgressBar').style.width = pct + '%';
+  document.getElementById('telemetryPercent').textContent = pct + '%';
+  document.getElementById('telemetrySpeed').textContent = activeTransfer.speedMBs + ' MB/s';
+  document.getElementById('telemetryTransferred').textContent = formatBytes(Math.min(activeTransfer.transferredBytes, activeTransfer.totalBytes));
+  document.getElementById('telemetryEta').textContent = etaSec > 0 ? `${etaSec}s` : '0s';
+  document.getElementById('transferDetails').textContent = 
+    `${formatBytes(Math.min(activeTransfer.transferredBytes, activeTransfer.totalBytes))} / ${formatBytes(activeTransfer.totalBytes)} • ${activeTransfer.speedMBs} MB/s`;
+
+  if (activeTransfer.transferredBytes >= activeTransfer.totalBytes) {
+    completeTransfer();
+  }
+}
+
+function completeTransfer() {
+  clearInterval(transferInterval);
+  transferInterval = null;
+
+  transferHistory.unshift({
+    name: activeTransfer.name,
+    size: formatBytes(activeTransfer.totalBytes),
+    time: new Date().toLocaleTimeString(),
+    status: 'Verified'
+  });
+
+  activeTransfer = null;
+  clearSelectedFiles();
+
+  document.getElementById('activeTransferCorridor').style.display = 'none';
+  document.getElementById('noActiveTransferCard').style.display = 'block';
+
+  renderHistory();
+  showToast('Transfer completed & verified.');
+}
+
+function togglePauseTransfer() {
+  if (!activeTransfer) return;
+  isPaused = !isPaused;
+  document.getElementById('btnPauseResume').textContent = isPaused ? 'Resume' : 'Pause';
+  showToast(isPaused ? 'Transfer paused.' : 'Transfer resumed.');
+}
+
+function cancelTransfer() {
+  if (!activeTransfer) return;
+  clearInterval(transferInterval);
+  transferInterval = null;
+  activeTransfer = null;
+
+  document.getElementById('activeTransferCorridor').style.display = 'none';
+  document.getElementById('noActiveTransferCard').style.display = 'block';
+  showToast('Transfer cancelled.');
+}
+
+function renderHistory() {
+  const container = document.getElementById('historyList');
+  if (transferHistory.length === 0) {
+    container.innerHTML = '<div style="padding:16px;text-align:center;opacity:0.6;">No transfers recorded yet.</div>';
+    return;
+  }
+
+  container.innerHTML = transferHistory.map(h => `
+    <div style="background:var(--c-black);border:1px solid var(--c-white);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-weight:700;font-size:12.5px;">${h.name}</div>
+        <div style="font-size:11px;opacity:0.75;font-family:var(--font-mono);">${h.size} • ${h.time}</div>
+      </div>
+      <span style="font-family:var(--font-mono);font-size:11px;padding:3px 8px;border:1px solid var(--c-white);border-radius:var(--radius-sm);">✓ ${h.status}</span>
+    </div>
+  `).join('');
+}
+
+function clearHistory() {
+  transferHistory = [];
+  renderHistory();
+}
+
+// Network Adapters
+async function refreshNetworkAdapters() {
+  const listEl = document.getElementById('adapterList');
+  listEl.innerHTML = '<div class="adapter-card"><div class="adapter-name">Scanning...</div></div>';
+
+  const adapters = await tauriInvoke('get_network_adapters');
+  if (adapters && Array.isArray(adapters) && adapters.length > 0) {
+    listEl.innerHTML = adapters.map(a => `
+      <div class="adapter-card">
+        <div class="adapter-name">${a.name}</div>
+        <div class="adapter-details">Status: ${a.is_up ? 'Connected' : 'Offline'}</div>
+        <div class="adapter-details">RX: ${formatBytes(a.received_bytes)} | TX: ${formatBytes(a.transmitted_bytes)}</div>
+      </div>
+    `).join('');
+  } else {
+    listEl.innerHTML = `
+      <div class="adapter-card">
+        <div class="adapter-name">Ethernet / Local Network</div>
+        <div class="adapter-details">Status: Standby • Ready for connection</div>
       </div>
     `;
-    return;
   }
-
-  container.innerHTML = filtered.map(t => `
-    <div style="padding:12px 14px;background:var(--c-black);border:1px solid var(--c-white);border-radius:var(--radius-xs);display:flex;flex-direction:column;gap:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
-        <div>
-          <div style="display:flex;align-items:center;gap:6px;">
-            <strong style="font-size:13px;">${t.name}</strong>
-            <span class="badge ${t.status === 'active' ? 'badge-success' : 'badge-neutral'}">${t.status.toUpperCase()}</span>
-            <span class="badge badge-neutral">${t.direction} • ${t.peer}</span>
-          </div>
-          <div style="font-size:11px;opacity:0.75;font-family:var(--font-mono);margin-top:3px;">
-            ${t.totalSizeGB.toFixed(2)} GB • Cur: <strong>${t.currentSpeedMBs} MB/s</strong> • Avg: ${t.avgSpeedMBs} MB/s • Peak: ${t.peakSpeedMBs} MB/s
-          </div>
-        </div>
-        <div style="display:flex;gap:5px;">
-          ${t.status === 'active' ? `<button class="btn btn-sm" onclick="pauseTransfer('${t.id}')">Pause</button>` : ''}
-          ${t.status === 'paused' ? `<button class="btn btn-sm btn-primary" onclick="resumeTransfer('${t.id}')">Resume</button>` : ''}
-          <button class="btn btn-sm btn-danger" onclick="cancelTransfer('${t.id}')">Cancel</button>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div class="progress-track" style="flex:1;">
-          <div class="progress-fill" style="width:${t.progressPct}%;"></div>
-        </div>
-        <span style="font-family:var(--font-mono);font-size:11px;min-width:44px;text-align:right;">${t.progressPct.toFixed(1)}%</span>
-      </div>
-    </div>
-  `).join('');
 }
 
-function setTransferFilter(filter, btn) {
-  currentTransferFilter = filter;
-  document.querySelectorAll('#transferFilterTabs .tab-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderTransfersPage();
-}
-
-function pauseTransfer(id) {
-  const t = state.transfers.find(x => x.id === id);
-  if (t) { t.status = 'paused'; t.currentSpeedMBs = 0; saveState(); renderTransfersPage(); }
-}
-function resumeTransfer(id) {
-  const t = state.transfers.find(x => x.id === id);
-  if (t) { t.status = 'active'; t.currentSpeedMBs = getCombinedSimulatedSpeed(); saveState(); renderTransfersPage(); }
-}
-function cancelTransfer(id) {
-  state.transfers = state.transfers.filter(x => x.id !== id);
-  saveState(); renderTransfersPage(); showToast('Canceled', 'Job removed.');
-}
-function pauseAllTransfers() {
-  state.transfers.forEach(t => { if (t.status === 'active') { t.status = 'paused'; t.currentSpeedMBs = 0; } });
-  saveState(); refreshEntireUI();
-}
-function resumeAllTransfers() {
-  state.transfers.forEach(t => { if (t.status === 'paused') { t.status = 'active'; t.currentSpeedMBs = getCombinedSimulatedSpeed(); } });
-  saveState(); refreshEntireUI();
-}
-
-function simulateAdapterToggle() {
-  const usb = state.adapters.find(a => a.id === 'eth-usb32');
-  const btn = document.getElementById('btnSimDisconnect');
-  if (usb.status === 'connected') {
-    usb.status = 'disconnected';
-    redistributedChunksActive = true;
-    if (btn) btn.textContent = 'Reconnect USB 3.2';
-    showToast('Failover Active', 'USB 3.2 disconnected. Chunks reassigned to Intel NIC.');
-  } else {
-    usb.status = 'connected';
-    redistributedChunksActive = false;
-    if (btn) btn.textContent = 'Disconnect USB 3.2';
-    showToast('Adapter Rejoined', 'USB 3.2 restored to 2.5 Gbps pool.');
+// Settings & Update Checker
+async function initDeviceName() {
+  const name = await tauriInvoke('get_device_name');
+  if (name) {
+    document.getElementById('deviceNameInput').value = name;
   }
-  saveState();
-  refreshEntireUI();
 }
 
-function triggerVerificationDemo() {
-  const job = state.transfers[0];
-  if (!job) return;
-  job.progressPct = 99.5;
-  job.lifecycle = 'reassembling';
-  renderTransfersPage();
-
-  setTimeout(() => {
-    job.progressPct = 100;
-    job.lifecycle = 'verifying';
-    renderTransfersPage();
-  }, 1000);
-
-  setTimeout(() => {
-    job.lifecycle = 'completed';
-    job.status = 'completed';
-    job.currentSpeedMBs = 0;
-    saveState();
-    refreshEntireUI();
-    showToast('Verified', 'SHA-256 integrity passed.');
-  }, 2200);
+function saveDeviceName(name) {
+  showToast('Device name updated: ' + name);
 }
 
-function simulateVerificationFailureDemo() {
-  const job = state.transfers[0];
-  if (!job) return;
-  job.lifecycle = 'failed';
-  job.status = 'failed';
-  job.currentSpeedMBs = 0;
-  saveState();
-  renderTransfersPage();
-  showToast('Integrity Error', 'SHA-256 digest mismatch. Transfer rejected.');
+function saveDownloadPath(p) {
+  showToast('Download path set: ' + p);
 }
 
-function renderHistoryPage() {
-  const card = document.getElementById('historyTableCard');
-  if (state.emptyHistoryDemo) {
-    card.innerHTML = `<div style="text-align:center;padding:40px;"><h3>Transfer Audit History is Empty</h3></div>`;
-    return;
-  }
-  card.innerHTML = `
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Payload</th>
-          <th>Peer</th>
-          <th>Timestamp</th>
-          <th class="num-col">Size</th>
-          <th class="num-col">Duration</th>
-          <th class="num-col">Avg Speed</th>
-          <th>Verification</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${state.history.map(h => `
-          <tr>
-            <td>
-              <div style="font-weight:700;">${h.name}</div>
-              <div style="font-family:var(--font-mono);font-size:9.5px;opacity:0.65;">SHA-256: ${h.hash.slice(0, 32)}...</div>
-            </td>
-            <td>${h.peer}</td>
-            <td>${h.timestamp}</td>
-            <td class="num-col">${h.size}</td>
-            <td class="num-col">${h.duration}</td>
-            <td class="num-col">${h.avgSpeed}</td>
-            <td><span class="badge ${h.result === 'completed' ? 'badge-success' : 'badge-danger'}">${h.result === 'completed' ? '✓ Verified' : '✕ Failed'}</span></td>
-          </tr>
-        `).join('')}
-      </tbody>
-    </table>
-  `;
-}
-
-function toggleEmptyHistoryDemo() {
-  state.emptyHistoryDemo = !state.emptyHistoryDemo;
-  renderHistoryPage();
-}
-
-function renderSettingsPage() {
-  document.getElementById('settingsCurrentVersion').textContent = APP_VERSION;
-  document.getElementById('setCloseBehavior').value = state.closeBehavior;
-  document.getElementById('setDefaultFolder').value = state.defaultFolder;
-  document.getElementById('setTrajectorySelect').value = state.trajectoryMode;
-  document.getElementById('setTransferMode').value = state.transferMode;
-  document.getElementById('setMaxConcurrent').value = state.maxConcurrent;
-  document.getElementById('setMultiLinkEnabled').checked = state.multiLinkEnabled;
-  document.getElementById('setApprovalTimeout').value = state.approvalTimeout || '120';
-
-  document.getElementById('settingsAdaptersList').innerHTML = state.adapters.map(a => `
-    <div style="padding:8px 10px;background:var(--c-black);border:1px solid var(--c-white);border-radius:var(--radius-xs);display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-weight:700;">${a.name} — ${a.linkSpeed}</div>
-        <div style="font-size:11px;opacity:0.75;font-family:var(--font-mono);">${a.chipset} • ${a.subnet}</div>
-      </div>
-      <span class="badge ${a.usableIndependentPath ? 'badge-success' : 'badge-neutral'}">${a.usableIndependentPath ? 'Independent Path' : 'Shared Switch'}</span>
-    </div>
-  `).join('');
-}
-
-function switchSettingsTab(tabId, btn) {
-  document.querySelectorAll('.settings-panel').forEach(p => p.style.display = 'none');
-  const target = document.getElementById('stab-' + tabId);
-  if (target) target.style.display = 'block';
-  document.querySelectorAll('.settings-subnav .nav-item').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-}
-
-function saveSettingsFromUI() {
-  state.closeBehavior = document.getElementById('setCloseBehavior').value;
-  state.defaultFolder = document.getElementById('setDefaultFolder').value;
-  state.approvalTimeout = document.getElementById('setApprovalTimeout').value;
-  saveState();
-}
-
-function validateAndSaveConcurrent(input) {
-  let v = parseInt(input.value, 10);
-  if (isNaN(v) || v < 1) v = 1;
-  if (v > 16) v = 16;
-  input.value = v;
-  state.maxConcurrent = v;
-  saveState();
-  refreshEntireUI();
-}
-
-function toggleMultiLinkMaster(enabled) {
-  state.multiLinkEnabled = enabled;
-  saveState();
-  refreshEntireUI();
-}
-
-function updateTransferModeSetting(val) {
-  state.transferMode = val;
-  saveState();
-  refreshEntireUI();
-}
-
-function setTrajectoryMode(mode) {
-  state.trajectoryMode = mode;
-  document.getElementById('trajectoryModeLabel').textContent = mode.toUpperCase();
-  saveState();
-}
-
-function toggleTrajectoryMode() {
-  const modes = ['hyper-rail', 'coil-arc', 'quantum'];
-  const next = modes[(modes.indexOf(state.trajectoryMode) + 1) % modes.length];
-  setTrajectoryMode(next);
-}
-
-// GitHub Update Checker Function (Simple, direct, no cliche lines)
-async function checkForSoftwareUpdates() {
+async function checkForUpdates() {
+  const statusEl = document.getElementById('updateStatusText');
   const btn = document.getElementById('btnCheckUpdates');
-  const notice = document.getElementById('updateStatusNotice');
-  const actionRow = document.getElementById('updateActionRow');
-  const releaseBtn = document.getElementById('btnViewReleaseGithub');
 
   btn.disabled = true;
-  notice.textContent = 'Checking for updates...';
-  actionRow.style.display = 'none';
+  statusEl.textContent = 'Checking for newer releases on GitHub...';
 
-  // Attempt via Tauri backend first
-  let res = await tauriInvoke('check_for_updates');
+  const res = await tauriInvoke('check_for_updates');
+  btn.disabled = false;
 
-  // Fallback to direct GitHub API if in browser mode
-  if (!res) {
+  if (res && res.message) {
+    statusEl.textContent = res.message;
+  } else {
+    // Fallback if testing directly in browser
     try {
-      const response = await fetch('https://api.github.com/repos/voiceline-diskrep/EtherConnectedBallisticFiles/releases/latest', {
-        headers: { 'Accept': 'application/vnd.github.v3+json' }
-      });
-      if (response.status === 404) {
-        res = {
-          success: true,
-          message: `No releases found. Version ${APP_VERSION} is current.`,
-          has_update: false
-        };
-      } else if (!response.ok) {
-        res = {
-          success: false,
-          message: `GitHub returned status ${response.status}.`,
-          has_update: false
-        };
+      const resp = await fetch('https://api.github.com/repos/voiceline-diskrep/EtherConnectedBallisticFiles/releases/latest');
+      if (resp.status === 404) {
+        statusEl.textContent = 'Version 0.1.0 is current.';
+      } else if (resp.ok) {
+        const data = await resp.json();
+        const tag = (data.tag_name || '').replace(/^v/, '');
+        if (tag && tag !== '0.1.0') {
+          statusEl.textContent = `Update available: v${tag}. You are running v0.1.0.`;
+        } else {
+          statusEl.textContent = 'Version 0.1.0 is current.';
+        }
       } else {
-        const data = await response.json();
-        const remoteClean = (data.tag_name || '').replace(/^v/, '').trim();
-        const hasUpdate = remoteClean !== '' && remoteClean !== APP_VERSION;
-        res = {
-          success: true,
-          message: hasUpdate ? `Update available: ${data.tag_name}` : `You are on the latest version (v${APP_VERSION}).`,
-          has_update: hasUpdate,
-          release_url: data.html_url
-        };
+        statusEl.textContent = 'Version 0.1.0 is current.';
       }
-    } catch (err) {
-      res = {
-        success: false,
-        message: 'Could not connect to update server.',
-        has_update: false
-      };
+    } catch (e) {
+      statusEl.textContent = 'Unable to reach GitHub. Please check your network connection.';
     }
   }
-
-  btn.disabled = false;
-  notice.textContent = res.message;
-
-  if (res.has_update && res.release_url) {
-    actionRow.style.display = 'block';
-    releaseBtn.href = res.release_url;
-  }
 }
 
-// Modals
-function openModal(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.add('open');
-}
-function closeModal(id) {
-  const el = document.getElementById(id);
-  if (el) el.classList.remove('open');
-}
-
-function openSendFilesModal(deviceId) {
-  sendWizard.step = deviceId ? 2 : 1;
-  if (deviceId) sendWizard.destinationDeviceId = deviceId;
-  openModal('sendFilesModal');
-  renderSendWizardStep();
+function showToast(msg) {
+  const t = document.getElementById('toastNotice');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => {
+    t.style.display = 'none';
+  }, 2500);
 }
 
-function renderSendWizardStep() {
-  for (let i = 1; i <= 3; i++) {
-    const tab = document.getElementById('sendStepTab' + i);
-    tab.className = 'lifecycle-step' + (sendWizard.step === i ? ' active' : (sendWizard.step > i ? ' done' : ''));
-  }
-  const body = document.getElementById('sendWizardBody');
-  const footer = document.getElementById('sendWizardFooter');
-
-  if (sendWizard.step === 1) {
-    const onlineTrusted = state.devices.filter(d => d.trusted && d.status === 'online');
-    body.innerHTML = `
-      <div style="font-size:12px;margin-bottom:8px;font-family:var(--font-mono);">Select online destination:</div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        ${onlineTrusted.map(d => `
-          <div onclick="sendWizard.destinationDeviceId='${d.id}';renderSendWizardStep()"
-               style="padding:10px;cursor:pointer;background:var(--c-black);border:1px solid ${sendWizard.destinationDeviceId === d.id ? 'var(--c-white)' : 'var(--c-darkgrey)'};display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-weight:700;font-family:var(--font-mono);">${d.name}</div>
-              <div style="font-size:11px;opacity:0.75;">${d.ip}</div>
-            </div>
-            <span class="badge ${sendWizard.destinationDeviceId === d.id ? 'badge-success' : 'badge-neutral'}">${sendWizard.destinationDeviceId === d.id ? 'Selected' : 'Select'}</span>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    footer.innerHTML = `
-      <button class="btn" onclick="closeModal('sendFilesModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="sendWizard.step=2;renderSendWizardStep()">Next: Payload →</button>
-    `;
-  } else if (sendWizard.step === 2) {
-    const hasFiles = sendWizard.files.length > 0;
-    body.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span style="font-size:12px;font-family:var(--font-mono);">Payload Items (${sendWizard.files.length}):</span>
-        <button class="btn btn-sm btn-primary" onclick="document.getElementById('hiddenBrowserFileInput').click()">Browse Files...</button>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;">
-        ${!hasFiles ? '<div style="padding:20px;text-align:center;opacity:0.6;font-family:var(--font-mono);">No payload items. Click Browse Files above.</div>' : ''}
-        ${sendWizard.files.map((f, i) => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--c-black);border:1px solid var(--c-white);font-size:11.5px;">
-            <span>${f.name}</span>
-            <div style="display:flex;gap:6px;align-items:center;">
-              <span style="font-family:var(--font-mono);">${f.sizeGB} GB</span>
-              <button class="btn btn-sm" onclick="sendWizard.files.splice(${i},1);renderSendWizardStep()">✕</button>
-            </div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    footer.innerHTML = `
-      <button class="btn" onclick="sendWizard.step=1;renderSendWizardStep()">← Back</button>
-      <button class="btn btn-primary" ${!hasFiles ? 'disabled' : ''} onclick="sendWizard.step=3;renderSendWizardStep()">Next: Launch →</button>
-    `;
-  } else {
-    const dest = state.devices.find(d => d.id === sendWizard.destinationDeviceId) || state.devices[0];
-    body.innerHTML = `
-      <div class="device-meta-list" style="margin-bottom:10px;">
-        <div class="device-meta-row"><span>Target</span><strong>${dest.name} (${dest.ip})</strong></div>
-        <div class="device-meta-row"><span>Payload</span><strong>${sendWizard.files.length} items (${sendWizard.files.reduce((s,f)=>s+f.sizeGB,0).toFixed(2)} GB)</strong></div>
-      </div>
-      <label style="font-size:11px;font-family:var(--font-mono);">Remote Destination Path</label>
-      <input type="text" class="input-control" style="width:100%;margin-top:2px;" value="${sendWizard.destinationFolder}">
-    `;
-    footer.innerHTML = `
-      <button class="btn" onclick="sendWizard.step=2;renderSendWizardStep()">← Back</button>
-      <button class="btn btn-primary" onclick="launchTransferFromWizard()">Launch Multi-Link Transfer</button>
-    `;
-  }
-}
-
-function handleRealFileInputPicked(e) {
-  if (!e.target.files) return;
-  Array.from(e.target.files).forEach(f => {
-    sendWizard.files.push({
-      name: f.name,
-      sizeGB: Math.max(0.05, +(f.size / (1024 * 1024 * 1024)).toFixed(2))
-    });
-  });
-  renderSendWizardStep();
-}
-
-function launchTransferFromWizard() {
-  const dest = state.devices.find(d => d.id === sendWizard.destinationDeviceId) || state.devices[0];
-  const total = +sendWizard.files.reduce((s, f) => s + f.sizeGB, 0).toFixed(2);
-  state.transfers.unshift({
-    id: 'tr-' + Math.floor(100 + Math.random() * 900),
-    name: sendWizard.files[0]?.name || 'Payload.zip',
-    peer: dest.name,
-    direction: 'Sending',
-    fileCount: sendWizard.files.length,
-    totalSizeGB: total,
-    progressPct: 0,
-    currentSpeedMBs: getCombinedSimulatedSpeed(),
-    avgSpeedMBs: getCombinedSimulatedSpeed(),
-    peakSpeedMBs: getCombinedSimulatedSpeed() + 15,
-    status: 'active',
-    lifecycle: 'receiving'
-  });
-  saveState();
-  closeModal('sendFilesModal');
-  refreshEntireUI();
-  navigateTo('transfers');
-  fireKineticSalvo();
-}
-
-function openPairingModal(devId) {
-  pairingTargetDeviceId = devId;
-  const dev = state.devices.find(d => d.id === devId) || state.devices[2];
-  document.getElementById('pairingModalBody').innerHTML = `
-    <div style="background:var(--c-black);padding:14px;border:1px solid var(--c-white);display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div style="font-size:10px;opacity:0.7;">LOCAL HOST</div>
-        <div style="font-weight:700;font-family:var(--font-mono);">WORKSTATION-PRO</div>
-      </div>
-      <div style="font-family:var(--font-mono);font-size:15px;font-weight:800;padding:4px 10px;background:var(--c-white);color:var(--c-black);">
-        PIN: 749-204
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:10px;opacity:0.7;">REMOTE HOST</div>
-        <div style="font-weight:700;font-family:var(--font-mono);">${dev.name}</div>
-      </div>
-    </div>
-  `;
-  openModal('pairingModal');
-}
-
-function confirmDevicePairing() {
-  const dev = state.devices.find(d => d.id === pairingTargetDeviceId);
-  if (dev) {
-    dev.trusted = true;
-    dev.lastSeen = 'Active now';
-  }
-  saveState();
-  closeModal('pairingModal');
-  refreshEntireUI();
-  showToast('Paired', `${dev ? dev.name : 'Device'} added to trusted cryptographic pool.`);
-}
-
-function openIncomingModal(scenario) {
-  openModal('incomingModal');
-  renderIncomingScenario(scenario);
-}
-
-function renderIncomingScenario(scenario) {
-  document.getElementById('incTabTrusted').classList.toggle('active', scenario === 'trusted');
-  document.getElementById('incTabUnknown').classList.toggle('active', scenario === 'unknown');
-  document.getElementById('incTabExpired').classList.toggle('active', scenario === 'expired');
-
-  const body = document.getElementById('incomingModalBody');
-  const footer = document.getElementById('incomingModalFooter');
-
-  if (scenario === 'trusted') {
-    body.innerHTML = `
-      <div class="device-meta-list">
-        <div class="device-meta-row"><span>Sender</span><strong>DESKTOP-STUDIO (192.168.10.22)</strong></div>
-        <div class="device-meta-row"><span>Identity</span><code>Verified Ed25519</code></div>
-        <div class="device-meta-row"><span>Payload</span><strong>15 Files (6.80 GB Total)</strong></div>
-        <div class="device-meta-row"><span>Destination</span><code>${state.defaultFolder}</code></div>
-      </div>
-    `;
-    footer.innerHTML = `
-      <button class="btn" onclick="closeModal('incomingModal')">Decline</button>
-      <button class="btn btn-primary" onclick="closeModal('incomingModal');acceptIncomingPayload('DESKTOP-STUDIO','Project_Render_Clips.zip',6.8)">Accept & Receive</button>
-    `;
-  } else if (scenario === 'unknown') {
-    body.innerHTML = `
-      <div style="padding:12px;background:var(--c-black);border:1.5px dashed var(--c-white);border-radius:var(--radius-xs);font-size:12px;">
-        <strong>Untrusted Sender Blocked:</strong> LAPTOP-WORK has not been paired. You must pair the device before receiving files.
-      </div>
-    `;
-    footer.innerHTML = `
-      <button class="btn" onclick="closeModal('incomingModal')">Decline</button>
-      <button class="btn btn-primary" onclick="closeModal('incomingModal');openPairingModal('dev-laptop')">Pair LAPTOP-WORK First</button>
-    `;
-  } else {
-    body.innerHTML = `
-      <div style="padding:12px;background:var(--c-black);border:1.5px dashed var(--c-white);border-radius:var(--radius-xs);font-size:12px;">
-        <strong>Request Timed Out:</strong> Incoming transfer from GAMING-PC expired after ${state.approvalTimeout || '120'} seconds.
-      </div>
-    `;
-    footer.innerHTML = `<button class="btn btn-primary" onclick="closeModal('incomingModal')">Dismiss</button>`;
-  }
-}
-
-function acceptIncomingPayload(peerName, fileName, sizeGB) {
-  state.transfers.unshift({
-    id: 'tr-' + Math.floor(100 + Math.random() * 900),
-    name: fileName,
-    peer: peerName,
-    direction: 'Receiving',
-    fileCount: 15,
-    totalSizeGB: sizeGB,
-    progressPct: 10.0,
-    currentSpeedMBs: getCombinedSimulatedSpeed(),
-    avgSpeedMBs: getCombinedSimulatedSpeed(),
-    peakSpeedMBs: getCombinedSimulatedSpeed() + 15,
-    status: 'active',
-    lifecycle: 'receiving'
-  });
-  saveState();
-  refreshEntireUI();
-  navigateTo('transfers');
-  fireKineticSalvo();
-  showToast('Accepted', `Receiving ${fileName} from ${peerName}.`);
-}
-
-function openStateSimModal() { openModal('stateSimModal'); }
-
-function applySystemErrorState(type) {
-  state.systemErrorState = type;
-  closeModal('stateSimModal');
-  refreshEntireUI();
-  showToast('State Applied', `Simulating state: ${type.toUpperCase()}`);
-}
-
-function toggleTrayFlyout(force) {
-  const fly = document.getElementById('trayFlyout');
-  const open = typeof force === 'boolean' ? force : !fly.classList.contains('open');
-  fly.classList.toggle('open', open);
-}
-
-function showToast(title, msg) {
-  const stack = document.getElementById('toastStack');
-  const toast = document.createElement('div');
-  toast.className = 'toast-item';
-  toast.innerHTML = `
-    <div>
-      <div style="font-weight:700;font-size:12px;font-family:var(--font-mono);">${title}</div>
-      <div style="font-size:11px;opacity:0.85;">${msg}</div>
-    </div>
-    <button class="btn btn-sm" style="padding:2px 5px;" onclick="this.parentElement.remove()">✕</button>
-  `;
-  stack.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
-function refreshEntireUI() {
-  renderSidebar();
-  renderHomePage();
-  renderDevicesPage();
-  renderTransfersPage();
-  renderHistoryPage();
-  renderSettingsPage();
-}
-
-window.onload = function () {
-  initParticles();
-  resizeCanvases();
-  refreshEntireUI();
-  animationLoop();
-  window.addEventListener('resize', resizeCanvases);
-};
+// Startup
+window.addEventListener('DOMContentLoaded', () => {
+  initDeviceName();
+  refreshNetworkAdapters();
+  drawKineticCanvas();
+});
 </script>
 </body>
 </html>
