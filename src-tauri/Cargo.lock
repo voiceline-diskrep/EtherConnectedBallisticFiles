@@ -840,11 +840,13 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "socket2",
  "sysinfo",
  "tauri",
  "tauri-build",
  "tauri-plugin-log",
  "tokio",
+ "windows 0.57.0",
 ]
 
 [[package]]
