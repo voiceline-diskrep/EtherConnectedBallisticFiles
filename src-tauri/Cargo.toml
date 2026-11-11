@@ -1,0 +1,24 @@
+[package]
+name = "ether_connected_ballistic_files"
+version = "0.1.0"
+description = "Hypersonic Multi-Link Peer-to-Peer File Acceleration over Ethernet"
+authors = ["voiceline-diskrep"]
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "ether_connected_ballistic_files_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.7.4" }
+
+[dependencies]
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4"
+tauri = { version = "2.12.5", features = ["tray-icon"] }
+tauri-plugin-log = "2"
+sha2 = "0.10"
+sysinfo = "0.33"
+tokio = { version = "1", features = ["full"] }
