@@ -967,15 +967,15 @@
       peerTag.textContent = p.links.length > 1
         ? `MULTI-CABLE BONDED CONNECTION (${p.links.length} WIRES)`
         : 'DIRECT WIRE CONNECTION ESTABLISHED';
-      peerHeadline.textContent = `Connected: ${snap.local_device_name} ↔ ${p.node_name}`;
+      peerHeadline.textContent = `I found a connection from ${snap.local_device_name} and ${p.node_name}`;
       peerSubtext.textContent = `Active Cable Path: ${linkSummary} • Combined Speed: ${p.combined_speed_mbps} Mbps (${p.combined_max_mbs} MB/s max) • Peer IP: ${p.links[0].peer_ip}`;
     } else if (connectedCables.length > 0) {
       peerBanner.classList.remove('connected');
       refreshBtn.classList.remove('btn-inverted');
       const cNames = connectedCables.map(c => `${c.name} (${c.link_speed_display})`).join(', ');
-      peerTag.textContent = 'PHYSICAL CABLE LINK ACTIVE • WAITING FOR PEER APP';
-      peerHeadline.textContent = 'No Peer App Detected on the Other End Yet';
-      peerSubtext.textContent = `Cable is plugged in on ${cNames}, but no other computer running EtherConnectedBallisticFiles has responded yet. Open this app on the other computer (or use Direct Cable IP Connect below).`;
+      peerTag.textContent = 'PHYSICAL CABLE DETECTED • SEARCHING FOR PEER APP';
+      peerHeadline.textContent = 'Cable Connected — Waiting for Other Computer\'s App';
+      peerSubtext.textContent = `Cable is plugged in on ${cNames}. Make sure this latest version of EtherConnectedBallisticFiles is open on both computers (or enter the other computer's Cable IP below).`;
     } else {
       peerBanner.classList.remove('connected');
       refreshBtn.classList.remove('btn-inverted');

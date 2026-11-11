@@ -384,14 +384,16 @@ fn refresh_cables_native(state: &mut EngineState) {
                 "Ethernet Cable (RJ45)".to_string()
             };
 
-            let is_connected =
-                row.MediaConnectState != MediaConnectStateDisconnected && row.TransmitLinkSpeed > 0;
-            let speed_bps = if is_connected { row.TransmitLinkSpeed } else { 0 };
+            let raw_speed_bps = row.TransmitLinkSpeed.max(row.ReceiveLinkSpeed);
+            let is_connected = row.MediaConnectState != MediaConnectStateDisconnected;
+            let speed_bps = if is_connected { raw_speed_bps } else { 0 };
             let speed_mbps = speed_bps / 1_000_000;
             let max_speed_mbs = ((speed_mbps as f64) / 8.0 * 10.0).round() / 10.0;
 
-            let link_speed_display = if !is_connected || speed_mbps == 0 {
+            let link_speed_display = if !is_connected {
                 "Disconnected".to_string()
+            } else if speed_mbps == 0 {
+                "Negotiating Link...".to_string()
             } else if speed_mbps >= 1000 {
                 format!("{:.1} Gbps ({:.0} MB/s)", (speed_mbps as f64) / 1000.0, max_speed_mbs)
             } else {
@@ -516,6 +518,20 @@ fn register_discovered_peer(state: &mut EngineState, pkt: BeaconPacket, peer_ip_
         }
     }
 
+    // Also check if peer_ip_actual is in the ARP neighbor table of any connected wired cable
+    #[cfg(target_os = "windows")]
+    if matched_cable.is_none() {
+        for cable in &state.cables {
+            if !cable.is_connected {
+                continue;
+            }
+            if query_arp_neighbors_for_interface(cable.if_index).contains(&peer_ipv4) {
+                matched_cable = Some(cable.clone());
+                break;
+            }
+        }
+    }
+
     // If no subnet match (e.g., cross-subnet static IP on connected cable), pick first connected cable
     if matched_cable.is_none() {
         matched_cable = state.cables.iter().find(|c| c.is_connected).cloned();
@@ -572,10 +588,32 @@ fn register_discovered_peer(state: &mut EngineState, pkt: BeaconPacket, peer_ip_
     entry.combined_max_mbs = ((entry.combined_speed_mbps as f64) / 8.0 * 10.0).round() / 10.0;
 }
 
+fn ensure_public_firewall_rules() {
+    #[cfg(target_os = "windows")]
+    std::thread::spawn(|| {
+        use std::os::windows::process::CommandExt;
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+        // 1. Update any existing Windows Firewall "Query User" rules for this app from Private-only to Any (Domain, Private, Public)
+        // 2. Add explicit Public/Private/Domain allow rules for UDP 45678 and TCP 45679 if elevated
+        let ps_script = r#"
+$ErrorActionPreference = 'SilentlyContinue'
+Get-NetFirewallRule | Where-Object { $_.DisplayName -match 'ether_connected_ballistic_files|EtherConnectedBallisticFiles' } | Set-NetFirewallRule -Profile Any -Action Allow -Enabled True
+New-NetFirewallRule -DisplayName 'EtherConnectedBallisticFiles Discovery UDP' -Direction Inbound -Protocol UDP -LocalPort 45678 -Profile Any -Action Allow -Enabled True
+New-NetFirewallRule -DisplayName 'EtherConnectedBallisticFiles Transfer TCP' -Direction Inbound -Protocol TCP -LocalPort 45679 -Profile Any -Action Allow -Enabled True
+"#;
+        let _ = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-NonInteractive", "-Command", ps_script])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output();
+    });
+}
+
 fn spawn_background_networking() {
+    ensure_public_firewall_rules();
     let engine = get_engine().clone();
 
-    // 1. UDP Listener Thread on 0.0.0.0:45678
+    // 1. UDP Listener Thread on 0.0.0.0:45678 (plus Multicast groups 224.0.0.251 & 239.255.255.250)
     let engine_udp = engine.clone();
     std::thread::spawn(move || {
         let sock = match UdpSocket::bind(("0.0.0.0", DISCOVERY_UDP_PORT)) {
@@ -583,6 +621,8 @@ fn spawn_background_networking() {
             Err(_) => return,
         };
         let _ = sock.set_broadcast(true);
+        let _ = sock.join_multicast_v4(&Ipv4Addr::new(224, 0, 0, 251), &Ipv4Addr::UNSPECIFIED);
+        let _ = sock.join_multicast_v4(&Ipv4Addr::new(239, 255, 255, 250), &Ipv4Addr::UNSPECIFIED);
         let mut buf = [0u8; 2048];
 
         loop {
@@ -591,31 +631,44 @@ fn spawn_background_networking() {
                     if pkt.magic == "ECBF_V2" {
                         let peer_ip = src_addr.ip().to_string();
                         let mut reply_pong: Option<BeaconPacket> = None;
+                        let mut tcp_reverse_hello: Option<(String, String, String, String, u64)> =
+                            None;
 
                         if let Ok(mut st) = engine_udp.lock() {
                             if pkt.node_id != st.node_id {
+                                let active_cable = st.cables.iter().find(|c| c.is_connected);
+                                let lip = active_cable
+                                    .and_then(|c| c.ip_address.clone())
+                                    .unwrap_or_default();
+                                let ptype = active_cable
+                                    .map(|c| c.port_type.clone())
+                                    .unwrap_or_else(|| "Ethernet Cable".to_string());
+                                let ifname = active_cable
+                                    .map(|c| c.name.clone())
+                                    .unwrap_or_else(|| "Ethernet".to_string());
+                                let spd = active_cable.map(|c| c.link_speed_mbps).unwrap_or(100);
+
                                 if pkt.kind == "BEACON" {
-                                    // Prepare unicast PONG reply so the sender immediately discovers us too
-                                    let active_cable = st.cables.iter().find(|c| c.is_connected);
+                                    // Prepare unicast PONG reply AND reverse TCP HELLO so the sender immediately discovers us
+                                    // even if the sender's Windows Firewall drops inbound UDP on "Unidentified / Public Network"!
                                     reply_pong = Some(BeaconPacket {
                                         magic: "ECBF_V2".to_string(),
                                         kind: "PONG".to_string(),
                                         node_id: st.node_id.clone(),
                                         node_name: st.device_name.clone(),
-                                        port_type: active_cable
-                                            .map(|c| c.port_type.clone())
-                                            .unwrap_or_else(|| "Ethernet Cable".to_string()),
-                                        interface_name: active_cable
-                                            .map(|c| c.name.clone())
-                                            .unwrap_or_else(|| "Ethernet".to_string()),
-                                        ip: active_cable
-                                            .and_then(|c| c.ip_address.clone())
-                                            .unwrap_or_default(),
+                                        port_type: ptype.clone(),
+                                        interface_name: ifname,
+                                        ip: lip.clone(),
                                         tcp_port: TRANSFER_TCP_PORT,
-                                        speed_mbps: active_cable
-                                            .map(|c| c.link_speed_mbps)
-                                            .unwrap_or(100),
+                                        speed_mbps: spd,
                                     });
+                                    tcp_reverse_hello = Some((
+                                        lip,
+                                        st.node_id.clone(),
+                                        st.device_name.clone(),
+                                        ptype,
+                                        spd,
+                                    ));
                                 }
                                 register_discovered_peer(&mut st, pkt, peer_ip.clone());
                             }
@@ -623,8 +676,40 @@ fn spawn_background_networking() {
 
                         if let Some(pong) = reply_pong {
                             if let Ok(bytes) = serde_json::to_vec(&pong) {
+                                // Reply to both src_addr (in case of stateful NAT/firewall pinhole) AND port 45678
+                                let _ = sock.send_to(&bytes, src_addr);
                                 let _ = sock.send_to(&bytes, (peer_ip.as_str(), DISCOVERY_UDP_PORT));
                             }
+                        }
+
+                        if let Some((lip, nid, nname, ptype, spd)) = tcp_reverse_hello {
+                            let pip = peer_ip.clone();
+                            std::thread::spawn(move || {
+                                if let Ok(mut stream) =
+                                    connect_bound_tcp_fast(&lip, &pip, TRANSFER_TCP_PORT, 350)
+                                {
+                                    let hello = WireCommand {
+                                        cmd: "HELLO".to_string(),
+                                        node_id: nid,
+                                        node_name: nname,
+                                        port_type: ptype,
+                                        speed_mbps: spd,
+                                        transfer_id: String::new(),
+                                        sender_name: String::new(),
+                                        file_name: String::new(),
+                                        file_size: 0,
+                                        total_chunks: 0,
+                                        chunk_index: 0,
+                                        offset: 0,
+                                        length: 0,
+                                        lane_index: 0,
+                                        lane_name: String::new(),
+                                        expected_sha256: String::new(),
+                                        lanes: Vec::new(),
+                                    };
+                                    let _ = send_wire_command(&mut stream, &hello);
+                                }
+                            });
                         }
                     }
                 }
@@ -664,49 +749,126 @@ fn spawn_background_networking() {
 
         // Broadcast beacon out of each connected physical wired interface
         for cable in active_cables {
-            if let Some(ref ip_str) = cable.ip_address {
-                if let Ok(local_ipv4) = ip_str.parse::<Ipv4Addr>() {
-                    let pkt = BeaconPacket {
-                        magic: "ECBF_V2".to_string(),
-                        kind: "BEACON".to_string(),
-                        node_id: node_id.clone(),
-                        node_name: node_name.clone(),
-                        port_type: cable.port_type.clone(),
-                        interface_name: cable.name.clone(),
-                        ip: ip_str.clone(),
-                        tcp_port: TRANSFER_TCP_PORT,
-                        speed_mbps: cable.link_speed_mbps,
-                    };
+            let local_ipv4 = cable
+                .ip_address
+                .as_deref()
+                .and_then(|s| s.parse::<Ipv4Addr>().ok())
+                .unwrap_or(Ipv4Addr::UNSPECIFIED);
 
-                    if let Ok(bytes) = serde_json::to_vec(&pkt) {
-                        if let Ok(sock) = UdpSocket::bind((local_ipv4, 0)) {
-                            let _ = sock.set_broadcast(true);
-                            // Directed subnet broadcast
-                            let mask = if cable.prefix_len == 0 {
-                                0
-                            } else {
-                                !0u32 << (32 - cable.prefix_len.min(32))
-                            };
-                            let bcast_u32 = u32::from(local_ipv4) | !mask;
-                            let subnet_bcast = Ipv4Addr::from(bcast_u32);
+            let pkt = BeaconPacket {
+                magic: "ECBF_V2".to_string(),
+                kind: "BEACON".to_string(),
+                node_id: node_id.clone(),
+                node_name: node_name.clone(),
+                port_type: cable.port_type.clone(),
+                interface_name: cable.name.clone(),
+                ip: cable.ip_address.clone().unwrap_or_default(),
+                tcp_port: TRANSFER_TCP_PORT,
+                speed_mbps: cable.link_speed_mbps,
+            };
 
-                            let _ = sock.send_to(&bytes, (subnet_bcast, DISCOVERY_UDP_PORT));
-                            let _ = sock.send_to(
-                                &bytes,
-                                (Ipv4Addr::new(169, 254, 255, 255), DISCOVERY_UDP_PORT),
-                            );
-                            let _ = sock.send_to(
-                                &bytes,
-                                (Ipv4Addr::new(255, 255, 255, 255), DISCOVERY_UDP_PORT),
-                            );
+            if let Ok(bytes) = serde_json::to_vec(&pkt) {
+                let bind_ip = if local_ipv4.is_unspecified() {
+                    Ipv4Addr::UNSPECIFIED
+                } else {
+                    local_ipv4
+                };
 
-                            // Also send direct unicast to any neighbor in the Windows ARP cache on this physical wire!
-                            #[cfg(target_os = "windows")]
-                            for neighbor_ip in query_arp_neighbors_for_interface(cable.if_index) {
-                                if neighbor_ip != local_ipv4 {
-                                    let _ = sock.send_to(&bytes, (neighbor_ip, DISCOVERY_UDP_PORT));
+                if let Ok(sock) = UdpSocket::bind((bind_ip, 0)) {
+                    let _ = sock.set_broadcast(true);
+
+                    // 1. Multicast discovery group (punches through Windows Public Firewall "Core Networking" rules!)
+                    let _ = sock.send_to(
+                        &bytes,
+                        (Ipv4Addr::new(224, 0, 0, 251), DISCOVERY_UDP_PORT),
+                    );
+                    let _ = sock.send_to(
+                        &bytes,
+                        (Ipv4Addr::new(239, 255, 255, 250), DISCOVERY_UDP_PORT),
+                    );
+
+                    // 2. Directed subnet broadcast + APIPA link-local broadcast + Global broadcast
+                    if !local_ipv4.is_unspecified() {
+                        let mask = if cable.prefix_len == 0 {
+                            0
+                        } else {
+                            !0u32 << (32 - cable.prefix_len.min(32))
+                        };
+                        let bcast_u32 = u32::from(local_ipv4) | !mask;
+                        let subnet_bcast = Ipv4Addr::from(bcast_u32);
+                        let _ = sock.send_to(&bytes, (subnet_bcast, DISCOVERY_UDP_PORT));
+                    }
+
+                    let _ = sock.send_to(
+                        &bytes,
+                        (Ipv4Addr::new(169, 254, 255, 255), DISCOVERY_UDP_PORT),
+                    );
+                    let _ = sock.send_to(
+                        &bytes,
+                        (Ipv4Addr::new(255, 255, 255, 255), DISCOVERY_UDP_PORT),
+                    );
+
+                    // 3. Direct unicast UDP + Bidirectional TCP HELLO to every neighbor on this physical wire!
+                    // Outbound TCP punches a stateful hole in Windows Firewall so even if Inbound UDP is blocked
+                    // on "Public / Unidentified Network", both PC and Laptop immediately discover each other!
+                    #[cfg(target_os = "windows")]
+                    for neighbor_ip in query_arp_neighbors_for_interface(cable.if_index) {
+                        if neighbor_ip != local_ipv4 {
+                            let _ = sock.send_to(&bytes, (neighbor_ip, DISCOVERY_UDP_PORT));
+
+                            let eng_probe = engine_scan.clone();
+                            let lip_str = cable.ip_address.clone().unwrap_or_default();
+                            let nip_str = neighbor_ip.to_string();
+                            let nid = node_id.clone();
+                            let nname = node_name.clone();
+                            let ptype = cable.port_type.clone();
+                            let spd = cable.link_speed_mbps;
+
+                            std::thread::spawn(move || {
+                                if let Ok(mut stream) =
+                                    connect_bound_tcp_fast(&lip_str, &nip_str, TRANSFER_TCP_PORT, 350)
+                                {
+                                    let hello = WireCommand {
+                                        cmd: "HELLO".to_string(),
+                                        node_id: nid,
+                                        node_name: nname,
+                                        port_type: ptype,
+                                        speed_mbps: spd,
+                                        transfer_id: String::new(),
+                                        sender_name: String::new(),
+                                        file_name: String::new(),
+                                        file_size: 0,
+                                        total_chunks: 0,
+                                        chunk_index: 0,
+                                        offset: 0,
+                                        length: 0,
+                                        lane_index: 0,
+                                        lane_name: String::new(),
+                                        expected_sha256: String::new(),
+                                        lanes: Vec::new(),
+                                    };
+                                    if send_wire_command(&mut stream, &hello).is_ok() {
+                                        if let Ok(ack) = read_wire_command(&mut stream) {
+                                            if ack.cmd == "HELLO_ACK" && !ack.node_id.is_empty() {
+                                                if let Ok(mut st) = eng_probe.lock() {
+                                                    let ack_pkt = BeaconPacket {
+                                                        magic: "ECBF_V2".to_string(),
+                                                        kind: "PONG".to_string(),
+                                                        node_id: ack.node_id,
+                                                        node_name: ack.node_name,
+                                                        port_type: ack.port_type,
+                                                        interface_name: "Ethernet".to_string(),
+                                                        ip: nip_str.clone(),
+                                                        tcp_port: TRANSFER_TCP_PORT,
+                                                        speed_mbps: ack.speed_mbps,
+                                                    };
+                                                    register_discovered_peer(&mut st, ack_pkt, nip_str);
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                            }
+                            });
                         }
                     }
                 }
@@ -1090,7 +1252,12 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
 // REAL MULTI-CABLE TCP FILE SENDER (BINDS SOCKETS TO EACH CABLE IP)
 // ============================================================================
 
-fn connect_bound_tcp(local_ip: &str, peer_ip: &str, peer_port: u16) -> std::io::Result<TcpStream> {
+fn connect_bound_tcp_fast(
+    local_ip: &str,
+    peer_ip: &str,
+    peer_port: u16,
+    timeout_ms: u64,
+) -> std::io::Result<TcpStream> {
     let peer_addr: SocketAddr = format!("{}:{}", peer_ip, peer_port)
         .parse()
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, e))?;
@@ -1107,8 +1274,16 @@ fn connect_bound_tcp(local_ip: &str, peer_ip: &str, peer_port: u16) -> std::io::
         }
     }
 
-    socket.connect_timeout(&peer_addr.into(), Duration::from_secs(4))?;
+    socket.connect_timeout(&peer_addr.into(), Duration::from_millis(timeout_ms))?;
     let std_stream: TcpStream = socket.into();
+    let rw_timeout = timeout_ms.max(2000);
+    let _ = std_stream.set_read_timeout(Some(Duration::from_millis(rw_timeout)));
+    let _ = std_stream.set_write_timeout(Some(Duration::from_millis(rw_timeout)));
+    Ok(std_stream)
+}
+
+fn connect_bound_tcp(local_ip: &str, peer_ip: &str, peer_port: u16) -> std::io::Result<TcpStream> {
+    let std_stream = connect_bound_tcp_fast(local_ip, peer_ip, peer_port, 4000)?;
     let _ = std_stream.set_read_timeout(Some(Duration::from_secs(15)));
     let _ = std_stream.set_write_timeout(Some(Duration::from_secs(15)));
     Ok(std_stream)
