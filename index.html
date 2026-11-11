@@ -1,0 +1,3497 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-transparency="true" data-reduced-motion="false" data-fx-sound="true" data-ballistic-mode="hypersonic">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EtherConnectedBallisticFiles — Ballistic Multi-Link File Acceleration</title>
+<style>
+/* ============================================================================
+   ETHERCONNECTED BALLISTIC FILES — MONOCHROME DESIGN SYSTEM & KINETIC ENGINE
+   Strict Monochrome Palette: #000000, #171717, #262626, #525252, #A3A3A3, #E5E5E5, #F5F5F5, #FFFFFF
+   ============================================================================ */
+:root {
+  --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', 'Cascadia Code', Consolas, monospace;
+
+  /* Spring physics & ballistic transitions */
+  --ease-ballistic: cubic-bezier(0.18, 1.25, 0.22, 1);
+  --ease-hypersonic: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-recoil: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-rapid: 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 240ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Strict Monochrome Base Tokens */
+  --mono-0: #000000;
+  --mono-10: #0D0D0D;
+  --mono-15: #171717;
+  --mono-25: #262626;
+  --mono-40: #404040;
+  --mono-50: #525252;
+  --mono-70: #A3A3A3;
+  --mono-85: #D4D4D4;
+  --mono-90: #E5E5E5;
+  --mono-95: #F5F5F5;
+  --mono-100: #FFFFFF;
+}
+
+/* Dark Theme */
+html[data-theme="dark"] {
+  --bg-desktop: #000000;
+  --bg-window: #0D0D0D;
+  --bg-sidebar: #121212;
+  --bg-surface: #1A1A1A;
+  --bg-surface-elevated: #242424;
+  --bg-surface-hover: #2E2E2E;
+  --bg-input: #141414;
+  --bg-modal: #181818;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: #A3A3A3;
+  --text-muted: #666666;
+
+  --border-subtle: #262626;
+  --border-specular: #3D3D3D;
+  --border-focus: #FFFFFF;
+  --border-glow: rgba(255, 255, 255, 0.25);
+
+  --btn-primary-bg: #FFFFFF;
+  --btn-primary-text: #000000;
+  --btn-primary-hover: #E5E5E5;
+
+  --btn-secondary-bg: #1A1A1A;
+  --btn-secondary-text: #FFFFFF;
+  --btn-secondary-border: #3D3D3D;
+  --btn-secondary-hover: #262626;
+
+  --shadow-window: 0 32px 80px rgba(0, 0, 0, 0.95), 0 0 0 1px #262626;
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-modal: 0 32px 72px rgba(0, 0, 0, 0.95), 0 0 0 1px #525252;
+  --shadow-glow: 0 0 24px rgba(255, 255, 255, 0.18);
+
+  --canvas-bg: #0D0D0D;
+  --canvas-grid: #1F1F1F;
+  --canvas-line-primary: #FFFFFF;
+  --canvas-line-secondary: #A3A3A3;
+  --canvas-trail: rgba(255, 255, 255, 0.85);
+}
+
+/* Light Theme */
+html[data-theme="light"] {
+  --bg-desktop: #E5E5E5;
+  --bg-window: #F5F5F5;
+  --bg-sidebar: #ECECEC;
+  --bg-surface: #FFFFFF;
+  --bg-surface-elevated: #F8F8F8;
+  --bg-surface-hover: #EEEEEE;
+  --bg-input: #FFFFFF;
+  --bg-modal: #FFFFFF;
+
+  --text-primary: #121212;
+  --text-secondary: #525252;
+  --text-muted: #8E8E8E;
+
+  --border-subtle: #E0E0E0;
+  --border-specular: #CCCCCC;
+  --border-focus: #000000;
+  --border-glow: rgba(0, 0, 0, 0.2);
+
+  --btn-primary-bg: #000000;
+  --btn-primary-text: #FFFFFF;
+  --btn-primary-hover: #262626;
+
+  --btn-secondary-bg: #F5F5F5;
+  --btn-secondary-text: #121212;
+  --btn-secondary-border: #CCCCCC;
+  --btn-secondary-hover: #E5E5E5;
+
+  --shadow-window: 0 24px 64px rgba(0, 0, 0, 0.12), 0 0 0 1px #CCCCCC;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-modal: 0 24px 56px rgba(0, 0, 0, 0.18), 0 0 0 1px #CCCCCC;
+  --shadow-glow: 0 0 20px rgba(0, 0, 0, 0.12);
+
+  --canvas-bg: #F5F5F5;
+  --canvas-grid: #E5E5E5;
+  --canvas-line-primary: #000000;
+  --canvas-line-secondary: #525252;
+  --canvas-trail: rgba(0, 0, 0, 0.75);
+}
+
+/* Reduced Motion Override */
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+/* Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-desktop);
+  color: var(--text-primary);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Kinetic Ripple & Focus */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 1.5px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* ============================================================================
+   KINETIC ANIMATION KEYFRAMES
+   ============================================================================ */
+@keyframes ballisticMuzzle {
+  0% { transform: scale(0.96) translateX(-4px); box-shadow: 0 0 0 rgba(255,255,255,0); }
+  35% { transform: scale(1.02) translateX(3px); box-shadow: 0 0 20px var(--border-glow); }
+  100% { transform: scale(1) translateX(0); box-shadow: none; }
+}
+
+@keyframes pulseGlowRing {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 0.2; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+@keyframes scanlineGlitch {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100%; }
+}
+
+@keyframes popInBallistic {
+  0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+  60% { opacity: 1; transform: scale(1.02) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes rippleShockwave {
+  0% { width: 0; height: 0; opacity: 0.7; }
+  100% { width: 320px; height: 320px; opacity: 0; }
+}
+
+@keyframes chunkBallisticFlash {
+  0% { transform: scale(1); filter: brightness(1); }
+  40% { transform: scale(1.15); filter: brightness(2); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes beamScan {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ============================================================================
+   APPLICATION WINDOW SHELL
+   ============================================================================ */
+.app-window {
+  width: 100%;
+  max-width: 1560px;
+  height: 100%;
+  max-height: 960px;
+  background: var(--bg-window);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-window);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: transform var(--transition-smooth), opacity var(--transition-smooth);
+}
+.app-window.maximized {
+  max-width: 100vw;
+  max-height: 100vh;
+  border-radius: 0;
+}
+.app-window.minimized-to-tray {
+  transform: scale(0.94) translateY(32px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Topbar */
+.titlebar {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.titlebar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-focus), transparent);
+  animation: beamScan 4s linear infinite;
+  opacity: 0.35;
+}
+
+.titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.app-logo-badge {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 12px var(--border-glow);
+}
+.sim-pill {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-specular);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Simulation Action Bar */
+.titlebar-sim-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.sim-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-specular);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-rapid);
+  position: relative;
+  overflow: hidden;
+}
+.sim-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.sim-btn:active {
+  transform: translateY(1px);
+}
+.sim-btn.highlight {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+}
+.sim-badge-count {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 9.5px;
+  padding: 1px 5px;
+  border-radius: 99px;
+}
+
+/* Window Caption Controls */
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.win-ctrl-btn {
+  width: 36px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--transition-rapid);
+}
+.win-ctrl-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+.win-ctrl-btn.close:hover {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+/* Body Layout */
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 248px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 12px;
+  flex-shrink: 0;
+}
+.nav-section-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  padding: 10px 12px 6px;
+  font-weight: 600;
+}
+.nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-rapid);
+}
+.nav-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.nav-item:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  transform: translateX(2px);
+}
+.nav-item.active {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+  font-weight: 500;
+  box-shadow: inset 2px 0 0 var(--text-primary);
+}
+.nav-pill {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface-elevated);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Ballistic Send Files Launch Button */
+.sidebar-cta {
+  width: 100%;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: 1px solid var(--btn-primary-bg);
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+  transition: transform var(--ease-ballistic) 240ms, background var(--transition-rapid);
+  position: relative;
+  overflow: hidden;
+}
+.sidebar-cta:hover {
+  background: var(--btn-primary-hover);
+  transform: scale(1.02) translateY(-1px);
+  box-shadow: var(--shadow-glow);
+}
+.sidebar-cta:active {
+  transform: scale(0.97) translateY(1px);
+}
+
+/* Permanent Ethernet Status Footer */
+.sidebar-eth-status {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.eth-status-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.eth-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  display: inline-block;
+  position: relative;
+}
+.eth-dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-primary);
+  animation: pulseGlowRing 2.2s infinite ease-in-out;
+}
+.eth-dot.warn {
+  background: transparent;
+  border: 1.5px solid var(--text-primary);
+}
+.eth-dot.warn::after { display: none; }
+.eth-dot.error {
+  background: transparent;
+  border: 1.5px dashed var(--text-secondary);
+}
+.eth-dot.error::after { display: none; }
+
+.eth-adapter-mini-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 8px;
+}
+.eth-adapter-mini-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 32px 36px;
+  position: relative;
+}
+.page-view {
+  display: none;
+  animation: popInBallistic 280ms var(--ease-hypersonic);
+}
+.page-view.active {
+  display: block;
+}
+
+/* Reusable UI Components */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.page-title {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.page-subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.glass-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-card);
+  transition: transform var(--ease-ballistic) 220ms, border-color var(--transition-rapid), box-shadow var(--transition-rapid);
+  position: relative;
+}
+.glass-card:hover {
+  border-color: var(--border-specular);
+}
+.glass-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Monochrome Kinetic Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--btn-secondary-border);
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  cursor: pointer;
+  transition: all var(--transition-rapid);
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+.btn:hover:not(:disabled) {
+  background: var(--btn-secondary-hover);
+  border-color: var(--text-primary);
+  transform: translateY(-1px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+  box-shadow: 0 0 12px var(--border-glow);
+}
+.btn-danger {
+  background: transparent;
+  border: 1px dashed var(--text-secondary);
+  color: var(--text-primary);
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-style: solid;
+}
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 11.5px;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  border: 1px solid var(--border-specular);
+  background: transparent;
+  color: var(--text-secondary);
+}
+.badge-success {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border-color: var(--btn-primary-bg);
+}
+.badge-warning {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--text-primary);
+}
+.badge-danger {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border: 1px dashed var(--text-secondary);
+}
+.badge-info {
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-specular);
+}
+.badge-neutral {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Grid Layouts */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 16px;
+}
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 16px;
+}
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+/* Stat Tiles */
+.stat-tile {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  transition: transform var(--ease-ballistic) 200ms;
+}
+.stat-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-specular);
+}
+.stat-label {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.stat-value {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.stat-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Tabs */
+.tabs-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: var(--bg-surface-elevated);
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+.tab-btn {
+  padding: 5px 12px;
+  border-radius: var(--radius-xs);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-rapid);
+}
+.tab-btn:hover {
+  color: var(--text-primary);
+}
+.tab-btn.active {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* ============================================================================
+   BALLISTIC CANVAS STAGE & MULTI-LINK PARTICLES
+   ============================================================================ */
+.visualizer-stage {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+.visualizer-stage::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02), transparent 70%);
+  pointer-events: none;
+}
+
+.visualizer-nodes-row {
+  display: grid;
+  grid-template-columns: 190px 1fr 190px;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+.endpoint-node {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-specular);
+  border-radius: var(--radius-md);
+  padding: 16px 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  transition: transform var(--ease-ballistic) 240ms, box-shadow var(--transition-rapid);
+}
+.endpoint-node.firing {
+  animation: ballisticMuzzle 320ms var(--ease-recoil);
+}
+.endpoint-node:hover {
+  transform: translateY(-2px);
+  border-color: var(--text-primary);
+}
+.endpoint-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+.endpoint-role {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+#particleCanvas {
+  width: 100%;
+  height: 200px;
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--canvas-bg);
+  border: 1px solid var(--border-subtle);
+  cursor: crosshair;
+}
+
+/* Chunk Matrix */
+.chunk-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+.chunk-cell {
+  padding: 6px 4px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  font-weight: 500;
+  border: 1px solid var(--border-subtle);
+  transition: all 180ms var(--ease-ballistic);
+  position: relative;
+  overflow: hidden;
+}
+.chunk-cell:hover {
+  transform: scale(1.08);
+  z-index: 2;
+}
+.chunk-cell.flashing {
+  animation: chunkBallisticFlash 350ms ease-out;
+}
+.chunk-cell.path-1 {
+  background: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  box-shadow: 0 0 8px var(--border-glow);
+}
+.chunk-cell.path-2 {
+  background: var(--bg-surface-elevated);
+  border-color: var(--border-specular);
+  color: var(--text-primary);
+}
+.chunk-cell.path-3 {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+}
+.chunk-cell.redistributed {
+  background: transparent;
+  border: 1.5px dashed var(--text-primary);
+  color: var(--text-primary);
+  animation: pulseGlowRing 2s infinite ease-in-out;
+}
+
+/* Stepper */
+.lifecycle-stepper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+.lifecycle-step {
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: all var(--transition-smooth);
+}
+.lifecycle-step.active {
+  border-color: var(--text-primary);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 0 14px var(--border-glow);
+}
+.lifecycle-step.done {
+  border-color: var(--btn-primary-bg);
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-weight: 600;
+}
+.lifecycle-step.error {
+  border: 1px dashed var(--text-primary);
+  background: var(--bg-surface-elevated);
+  color: var(--text-primary);
+}
+
+/* Speed Chart Canvas */
+#speedChartCanvas {
+  width: 100%;
+  height: 170px;
+  display: block;
+  border-radius: var(--radius-sm);
+  background: var(--canvas-bg);
+  border: 1px solid var(--border-subtle);
+}
+
+/* Progress Bar */
+.progress-track {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 99px;
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--text-primary);
+  transition: width 200ms linear;
+  position: relative;
+}
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: beamScan 1.6s infinite linear;
+}
+
+/* Device Card & Drag-Drop */
+.device-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  position: relative;
+}
+.device-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.device-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-specular);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+  flex-shrink: 0;
+  transition: transform var(--ease-ballistic) 200ms;
+}
+.device-card:hover .device-avatar {
+  transform: scale(1.08) rotate(3deg);
+}
+.device-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  background: var(--bg-surface-elevated);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+.device-meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.adapter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.adapter-tag {
+  font-size: 10.5px;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.drop-zone {
+  border: 1px dashed var(--border-specular);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  background: var(--bg-surface-elevated);
+  transition: all var(--transition-rapid);
+  cursor: pointer;
+}
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: var(--text-primary);
+  border-style: solid;
+  color: var(--text-primary);
+  transform: scale(1.02);
+  box-shadow: 0 0 12px var(--border-glow);
+}
+
+/* Draggable Sample Chip */
+.sample-drag-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-specular);
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.draggable-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--text-primary);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  cursor: grab;
+  transition: transform var(--ease-ballistic) 180ms, box-shadow var(--transition-rapid);
+}
+.draggable-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px var(--border-glow);
+}
+.draggable-chip:active {
+  cursor: grabbing;
+  transform: scale(0.96);
+}
+
+/* Modals */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.modal-backdrop.open {
+  display: flex;
+  animation: popInBallistic 240ms var(--ease-hypersonic);
+}
+.modal-box {
+  width: 100%;
+  max-width: 640px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-specular);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-modal);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 14px;
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 14px;
+}
+
+/* Form Controls */
+.input-control,
+.select-control {
+  background: var(--bg-input);
+  border: 1px solid var(--border-specular);
+  color: var(--text-primary);
+  padding: 7px 11px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 12.5px;
+  transition: border-color var(--transition-rapid);
+}
+.input-control:focus,
+.select-control:focus {
+  border-color: var(--border-focus);
+}
+
+/* Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-specular);
+  transition: 0.18s;
+  border-radius: 99px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text-secondary);
+  transition: 0.18s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--btn-primary-bg);
+  border-color: var(--btn-primary-bg);
+}
+input:checked + .slider:before {
+  transform: translateX(18px);
+  background-color: var(--btn-primary-text);
+}
+
+/* Toasts */
+.toast-stack {
+  position: fixed;
+  bottom: 22px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 120;
+  pointer-events: none;
+}
+.toast-item {
+  width: 340px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-specular);
+  border-left: 3px solid var(--text-primary);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-modal);
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  animation: popInBallistic 220ms var(--ease-hypersonic);
+}
+
+/* Swiss Data Table */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.data-table th {
+  text-align: left;
+  padding: 12px 16px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border-specular);
+}
+.data-table th.num-col,
+.data-table td.num-col {
+  text-align: right;
+  font-family: var(--font-mono);
+}
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.data-table tbody tr:hover td {
+  background: var(--bg-surface-hover);
+}
+
+/* Settings */
+.settings-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+}
+.settings-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.settings-row:last-child {
+  border-bottom: none;
+}
+.settings-label-title {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.settings-label-desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+
+/* System Tray Flyout */
+.tray-flyout {
+  position: fixed;
+  bottom: 22px;
+  right: 24px;
+  width: 320px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-specular);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  padding: 14px;
+  z-index: 95;
+  display: none;
+  flex-direction: column;
+  gap: 10px;
+}
+.tray-flyout.open {
+  display: flex;
+  animation: popInBallistic 180ms var(--ease-hypersonic);
+}
+.tray-menu-btn {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: var(--radius-xs);
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 12.5px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  transition: background var(--transition-rapid);
+}
+.tray-menu-btn:hover {
+  background: var(--bg-surface-hover);
+}
+
+.minimized-restore-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-modal);
+  border: 1px solid var(--text-primary);
+  padding: 10px 18px;
+  border-radius: 99px;
+  box-shadow: var(--shadow-modal);
+  display: none;
+  align-items: center;
+  gap: 12px;
+  z-index: 90;
+}
+.minimized-restore-bar.visible {
+  display: flex;
+  animation: popInBallistic 220ms var(--ease-hypersonic);
+}
+</style>
+</head>
+<body>
+
+<!-- MAIN DESKTOP APPLICATION CONTAINER -->
+<div class="app-window" id="appWindow">
+
+  <!-- TOP BAR -->
+  <header class="titlebar">
+    <div class="titlebar-brand">
+      <div class="app-logo-badge" id="appLogoBadge" title="EtherConnectedBallisticFiles">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="5" cy="12" r="2.5"/>
+          <circle cx="19" cy="6" r="2.5"/>
+          <circle cx="19" cy="18" r="2.5"/>
+          <line x1="7.5" y1="11" x2="16.5" y2="7"/>
+          <line x1="7.5" y1="13" x2="16.5" y2="17"/>
+        </svg>
+      </div>
+      <span>EtherConnectedBallisticFiles</span>
+      <span class="sim-pill">BALLISTIC HYPERSONIC v3.2</span>
+    </div>
+
+    <!-- Topbar Kinetic Simulation Controls -->
+    <div class="titlebar-sim-bar">
+      <button class="sim-btn highlight" onclick="triggerBallisticBurst()" title="Fire a Kinetic Ballistic Salvo (Shockwave Demo)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Fire Burst
+      </button>
+
+      <button class="sim-btn" onclick="openIncomingModal('trusted')" title="Test Incoming File Transfer Approval Dialog">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Incoming
+        <span class="sim-badge-count" id="incomingBadgeCount">3</span>
+      </button>
+
+      <button class="sim-btn" onclick="openStateSimModal()" title="Test All 12 Empty & Error States">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        States (12)
+      </button>
+
+      <button class="sim-btn" onclick="toggleTrajectoryMode()" id="trajectoryModeBtn" title="Toggle Ballistic Trajectory Mode (Hyper-Rail, Coil Arc, Quantum Scatter)">
+        <span style="font-family:var(--font-mono);font-size:10px;">MODE:</span>
+        <span id="trajectoryModeLabel">HYPER-RAIL</span>
+      </button>
+
+      <button class="sim-btn" onclick="toggleAudioFx()" id="audioFxBtn" title="Toggle Ballistic Tactile Sound Effects (Web Audio API)">
+        <span id="audioFxLabel">FX: ON</span>
+      </button>
+
+      <button class="sim-btn" onclick="cycleQuickTheme()" id="quickThemeBtn" title="Switch Monochrome Light / Dark">
+        <span id="quickThemeLabel">Dark</span>
+      </button>
+
+      <button class="sim-btn" onclick="toggleTrayFlyout()" title="Toggle System Tray Flyout">
+        Tray
+      </button>
+    </div>
+
+    <!-- Window Caption Controls -->
+    <div class="window-controls">
+      <button class="win-ctrl-btn" onclick="minimizeToTray()" title="Minimize to System Tray" aria-label="Minimize">
+        <svg width="11" height="11" viewBox="0 0 12 12"><rect x="2" y="6" width="8" height="1" fill="currentColor"/></svg>
+      </button>
+      <button class="win-ctrl-btn" onclick="toggleMaximizeWindow()" title="Maximize / Restore" aria-label="Maximize">
+        <svg width="11" height="11" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" stroke="currentColor" stroke-width="1.1" fill="none"/></svg>
+      </button>
+      <button class="win-ctrl-btn close" onclick="handleWindowCloseClick()" title="Close Window" aria-label="Close">
+        <svg width="11" height="11" viewBox="0 0 12 12"><path d="M2.5 2.5 9.5 9.5M9.5 2.5 2.5 9.5" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- APPLICATION BODY -->
+  <div class="app-body">
+
+    <!-- LEFT NAVIGATION SIDEBAR -->
+    <aside class="sidebar">
+      <div>
+        <button class="sidebar-cta" onclick="openSendFilesModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Send Files
+        </button>
+
+        <div class="nav-section-label">Workspace</div>
+        <ul class="nav-list">
+          <li>
+            <button class="nav-item active" data-page="home" onclick="navigateTo('home')">
+              <span class="nav-item-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Home
+              </span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="devices" onclick="navigateTo('devices')">
+              <span class="nav-item-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                Devices
+              </span>
+              <span class="nav-pill" id="navDevicesCount">5</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="transfers" onclick="navigateTo('transfers')">
+              <span class="nav-item-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                Transfers
+              </span>
+              <span class="nav-pill" id="navTransfersCount">2</span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="history" onclick="navigateTo('history')">
+              <span class="nav-item-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Transfer History
+              </span>
+            </button>
+          </li>
+          <li>
+            <button class="nav-item" data-page="settings" onclick="navigateTo('settings')">
+              <span class="nav-item-left">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83-2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Settings
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- PERMANENT ETHERNET STATUS FOOTER -->
+      <div class="sidebar-eth-status" id="sidebarEthernetWidget">
+        <div class="eth-status-top">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="eth-dot" id="sidebarEthDot"></span>
+            <span style="font-size:12px;font-weight:600;" id="sidebarEthTitle">Multi-Link Ready</span>
+          </div>
+          <span class="badge badge-info" id="sidebarEthRate">3.5 Gbps</span>
+        </div>
+        <div style="font-size:11px;color:var(--text-secondary);" id="sidebarEthSub">
+          WORKSTATION-PRO • 2 Ballistic Paths
+        </div>
+        <div class="eth-adapter-mini-list" id="sidebarAdapterList"></div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-content" id="mainScrollArea">
+      <div id="globalSimErrorBanner" style="display:none;margin-bottom:20px;" class="glass-card"></div>
+
+      <!-- ====================================================================
+           PAGE 1: HOME
+           ==================================================================== -->
+      <section class="page-view active" id="page-home">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Ballistic Multi-Link Workspace</h1>
+            <p class="page-subtitle">Host: <strong>WORKSTATION-PRO</strong> (192.168.10.10) • Hypersonic peer-to-peer packet transport</p>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-primary" onclick="openSendFilesModal()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send Files
+            </button>
+            <button class="btn" onclick="navigateTo('devices')">View Devices</button>
+            <button class="btn" onclick="navigateTo('transfers')">Open Telemetry</button>
+          </div>
+        </div>
+
+        <!-- STAT METRICS -->
+        <div class="grid-4" style="margin-bottom:20px;">
+          <div class="stat-tile">
+            <div class="stat-label">Ethernet Link State</div>
+            <div class="stat-value" id="homeLinkStateText">Connected</div>
+            <div class="stat-sub">Primary: USB Ethernet 3.2 (2.5 Gbps)</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">Negotiated Capacity</div>
+            <div class="stat-value" id="homeNegotiatedSpeed">3.5 Gbps</div>
+            <div class="stat-sub">2 active aggregated paths</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">Link Stability & Latency</div>
+            <div class="stat-value">99.99% <span style="font-size:12px;color:var(--text-secondary);font-weight:400;">0.14 ms</span></div>
+            <div class="stat-sub">Zero CRC frame drops</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-label">Ballistic Live Throughput</div>
+            <div class="stat-value" id="homeLiveThroughput">285 MB/s</div>
+            <div class="stat-sub">Hypersonic multi-link salvo active</div>
+          </div>
+        </div>
+
+        <!-- PATH AGGREGATION & TOPOLOGY -->
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="glass-card">
+            <div class="glass-card-header">
+              <div class="card-title">Multi-Link Path Aggregation</div>
+              <span class="badge badge-info" id="homeMultiLinkBadge">Multi-Link Enabled</span>
+            </div>
+            <div id="homeAdapterBars" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+
+            <!-- SVG TOPOLOGY DIAGRAM -->
+            <div style="background:var(--bg-surface-elevated);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:14px;position:relative;overflow:hidden;">
+              <div style="display:flex;justify-content:space-between;font-size:10px;font-family:var(--font-mono);color:var(--text-secondary);margin-bottom:6px;">
+                <span>LOCAL: WORKSTATION-PRO</span>
+                <span>INDEPENDENT PHYSICAL SUBNETS</span>
+                <span>PEER: DESKTOP-STUDIO</span>
+              </div>
+              <svg width="100%" height="72" viewBox="0 0 520 72">
+                <rect x="4" y="16" width="96" height="40" rx="5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                <text x="52" y="40" text-anchor="middle" fill="currentColor" font-size="9" font-family="monospace" font-weight="600">WORKSTATION</text>
+
+                <!-- Ballistic Ray 1 -->
+                <path d="M 100 24 C 200 8, 320 8, 420 24" fill="none" stroke="currentColor" stroke-width="2"/>
+                <text x="260" y="14" text-anchor="middle" fill="currentColor" font-size="9" font-family="monospace">Path 1: USB 3.2 (2.5G) • ~195 MB/s</text>
+
+                <!-- Ballistic Ray 2 -->
+                <path d="M 100 36 L 420 36" fill="none" stroke="currentColor" stroke-opacity="0.65" stroke-width="1.5"/>
+                <text x="260" y="33" text-anchor="middle" fill="currentColor" font-size="9" font-family="monospace">Path 2: Intel I225-V (1G) • ~90 MB/s</text>
+
+                <!-- Standby Ray 3 -->
+                <path d="M 100 48 C 200 62, 320 62, 420 48" fill="none" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.1" stroke-dasharray="3 3"/>
+                <text x="260" y="66" text-anchor="middle" fill="currentColor" fill-opacity="0.5" font-size="8.5" font-family="monospace">USB-Eth 2.0 (100M) • Excluded Bottleneck</text>
+
+                <rect x="420" y="16" width="96" height="40" rx="5" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                <text x="468" y="40" text-anchor="middle" fill="currentColor" font-size="9" font-family="monospace" font-weight="600">DESKTOP-STUDIO</text>
+              </svg>
+            </div>
+          </div>
+
+          <!-- RECENT ACTIVITY & TRIGGERS -->
+          <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
+            <div>
+              <div class="glass-card-header">
+                <div class="card-title">Recent Activity</div>
+                <button class="btn btn-sm" onclick="navigateTo('history')">Audit Log</button>
+              </div>
+              <div id="homeRecentActivityList" style="display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+              <span style="font-size:12px;color:var(--text-secondary);">Ballistic Actions:</span>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm" onclick="triggerBallisticBurst()">Fire Kinetic Salvo</button>
+                <button class="btn btn-sm" onclick="openIncomingModal('trusted')">Incoming Request</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NEARBY COMPUTERS -->
+        <div class="glass-card">
+          <div class="glass-card-header">
+            <div>
+              <div class="card-title">Discovered LAN Peers</div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Local mDNS link-local discovery</div>
+            </div>
+            <button class="btn btn-sm" onclick="navigateTo('devices')">View All Devices →</button>
+          </div>
+          <div class="grid-3" id="homeDevicesGrid"></div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           PAGE 2: DEVICES
+           ==================================================================== -->
+      <section class="page-view" id="page-devices">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Discovered LAN Computers</h1>
+            <p class="page-subtitle">Drag and drop files directly onto any paired computer card to launch a ballistic multi-link transfer.</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <div class="tabs-bar" id="deviceFilterTabs">
+              <button class="tab-btn active" onclick="setDeviceFilter('all', this)">All (5)</button>
+              <button class="tab-btn" onclick="setDeviceFilter('online', this)">Online</button>
+              <button class="tab-btn" onclick="setDeviceFilter('trusted', this)">Trusted</button>
+              <button class="tab-btn" onclick="setDeviceFilter('untrusted', this)">Untrusted</button>
+              <button class="tab-btn" onclick="setDeviceFilter('offline', this)">Offline / Lost</button>
+            </div>
+            <button class="btn" onclick="triggerDeviceRescan()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+              Rescan
+            </button>
+          </div>
+        </div>
+
+        <!-- DRAG AND DROP SAMPLE BAR -->
+        <div class="sample-drag-bar">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="badge badge-success">DRAG & DROP PAYLOAD</span>
+            <span style="font-size:12.5px;color:var(--text-secondary);">
+              Drag this kinetic sample chip onto any online computer card below:
+            </span>
+          </div>
+          <div class="draggable-chip" draggable="true" ondragstart="handleSampleChipDragStart(event)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            Studio_Master_4K_Build.zip (6.4 GB)
+          </div>
+        </div>
+
+        <div class="grid-3" id="devicesPageGrid"></div>
+      </section>
+
+      <!-- ====================================================================
+           PAGE 3: TRANSFERS & BALLISTIC TELEMETRY
+           ==================================================================== -->
+      <section class="page-view" id="page-transfers">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Ballistic Multi-Link Telemetry</h1>
+            <p class="page-subtitle">Real-time hypersonic packet particle accelerator, adaptive chunk matrix, and SHA-256 verification</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span class="badge badge-info" id="activeSchedulerModeBadge">Mode: Multi-Transfer (Max 3)</span>
+            <button class="btn" onclick="navigateTo('history')">Audit Logs</button>
+            <button class="btn btn-primary" onclick="openSendFilesModal()">+ New Transfer</button>
+          </div>
+        </div>
+
+        <!-- BALLISTIC PARTICLE ACCELERATOR STAGE -->
+        <div class="visualizer-stage">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:8px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:15px;font-weight:700;font-family:var(--font-mono);" id="vizJobTitle">Project_Backup.zip</span>
+                <span class="badge badge-success" id="vizJobStateBadge">Active Hypersonic</span>
+                <span class="badge badge-neutral" id="vizChunkSizeBadge">Adaptive Chunk: 16 MB</span>
+              </div>
+              <div style="font-size:12px;color:var(--text-secondary);margin-top:3px;" id="vizJobSubtitle">
+                12.5 GB Total • Proportional ballistic packet distribution across 2 active adapters
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-sm btn-danger" id="btnSimDisconnect" onclick="simulateAdapterToggle()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/></svg>
+                Disconnect USB 3.2
+              </button>
+              <button class="btn btn-sm" onclick="triggerVerificationDemo()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Fast-Forward SHA-256
+              </button>
+              <button class="btn btn-sm" onclick="simulateVerificationFailureDemo()">
+                Simulate Hash Mismatch
+              </button>
+            </div>
+          </div>
+
+          <!-- SENDER <-> BALLISTIC PARTICLES <-> RECEIVER -->
+          <div class="visualizer-nodes-row">
+            <div class="endpoint-node" id="nodeSender">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              <div class="endpoint-name">WORKSTATION-PRO</div>
+              <div class="endpoint-role">Sender (Local Host)</div>
+              <span class="badge badge-info" id="vizCombinedSpeedBadge" style="font-size:12px;margin-top:4px;">285 MB/s</span>
+            </div>
+
+            <div style="position:relative;width:100%;">
+              <canvas id="particleCanvas"></canvas>
+            </div>
+
+            <div class="endpoint-node" id="nodeReceiver">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M6 7h4m-4 3h8"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+              <div class="endpoint-name" id="vizReceiverName">DESKTOP-STUDIO</div>
+              <div class="endpoint-role">Receiver (Trusted)</div>
+              <span class="badge badge-success" id="vizProgressBadge" style="font-size:12px;margin-top:4px;">67.4%</span>
+            </div>
+          </div>
+
+          <!-- INTEGRITY LIFECYCLE STEPPER -->
+          <div class="lifecycle-stepper" id="verificationStepper">
+            <div class="lifecycle-step active" data-step="receiving">1. Receiving Chunks</div>
+            <div class="lifecycle-step" data-step="reassembling">2. Reassembling Blocks</div>
+            <div class="lifecycle-step" data-step="verifying">3. Verifying SHA-256</div>
+            <div class="lifecycle-step" data-step="completed">4. Verified & Complete</div>
+          </div>
+        </div>
+
+        <!-- SPEED GRAPH & CHUNK DISTRIBUTION -->
+        <div class="grid-2" style="margin-bottom:20px;">
+          <!-- Speed Graph -->
+          <div class="glass-card">
+            <div class="glass-card-header">
+              <div class="card-title">Live Ballistic Speed Telemetry</div>
+              <div style="display:flex;gap:12px;font-size:11.5px;font-family:var(--font-mono);">
+                <span>Cur: <strong id="graphCurrentSpeed">285 MB/s</strong></span>
+                <span>Avg: <strong id="graphAvgSpeed">268 MB/s</strong></span>
+                <span>Peak: <strong id="graphPeakSpeed">312 MB/s</strong></span>
+                <span>ETA: <strong id="graphEta">00:14</strong></span>
+              </div>
+            </div>
+            <canvas id="speedChartCanvas"></canvas>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-secondary);margin-top:10px;font-family:var(--font-mono);">
+              <span id="graphDataTransferred">Transferred: 8.42 GB of 12.50 GB</span>
+              <span>Mach Speed Mode</span>
+            </div>
+          </div>
+
+          <!-- Chunk Matrix -->
+          <div class="glass-card">
+            <div class="glass-card-header">
+              <div>
+                <div class="card-title">Dynamic Chunk Allocation & Failover</div>
+                <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;">
+                  Unfinished chunks on failed links are immediately reassigned.
+                </div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-family:var(--font-mono);margin-bottom:8px;">
+              <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--btn-primary-bg);display:inline-block;"></span> USB 3.2 (2.5G)</span>
+              <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;background:var(--bg-surface-elevated);border:1px solid var(--border-specular);display:inline-block;"></span> Intel GbE (1G)</span>
+              <span style="display:flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:2px;border:1.5px dashed var(--text-primary);display:inline-block;"></span> Redistributed</span>
+            </div>
+
+            <div class="chunk-grid" id="chunkMatrixGrid"></div>
+
+            <div style="margin-top:12px;padding:9px 12px;border-radius:var(--radius-xs);background:var(--bg-surface-elevated);border:1px solid var(--border-subtle);font-size:11.5px;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center;">
+              <span id="chunkPolicyExplanation">Adaptive 16 MB chunks active for >200 MB/s paths.</span>
+              <span style="font-family:var(--font-mono);" id="ackStatusText">ACK: 526/781 Verified</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRANSFERS QUEUE -->
+        <div class="glass-card">
+          <div class="glass-card-header" style="flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+              <span class="card-title">Transfer Queue</span>
+              <div class="tabs-bar" id="transferFilterTabs">
+                <button class="tab-btn active" onclick="setTransferFilter('all', this)">All</button>
+                <button class="tab-btn" onclick="setTransferFilter('active', this)">Active</button>
+                <button class="tab-btn" onclick="setTransferFilter('queued', this)">Queued</button>
+                <button class="tab-btn" onclick="setTransferFilter('paused', this)">Paused</button>
+                <button class="tab-btn" onclick="setTransferFilter('completed', this)">Completed</button>
+                <button class="tab-btn" onclick="setTransferFilter('failed', this)">Failed</button>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-sm" onclick="pauseAllTransfers()">Pause All</button>
+              <button class="btn btn-sm" onclick="resumeAllTransfers()">Resume All</button>
+            </div>
+          </div>
+
+          <div id="transfersListContainer" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           PAGE 4: TRANSFER HISTORY
+           ==================================================================== -->
+      <section class="page-view" id="page-history">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Transfer Audit & Verification Log</h1>
+            <p class="page-subtitle">Cryptographic SHA-256 historical records and transmission performance benchmarks</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input type="text" class="input-control" id="historySearchInput" placeholder="Search filename or computer..." oninput="renderHistoryPage()">
+            <select class="select-control" id="historyFilterSelect" onchange="renderHistoryPage()">
+              <option value="all">All Records</option>
+              <option value="completed">Completed & Verified</option>
+              <option value="failed">Failed / Interrupted</option>
+            </select>
+            <button class="btn btn-sm" onclick="toggleEmptyHistoryDemo()" id="btnToggleEmptyHistory">Simulate Empty</button>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:0;overflow:hidden;" id="historyTableCard"></div>
+      </section>
+
+      <!-- ====================================================================
+           PAGE 5: SETTINGS
+           ==================================================================== -->
+      <section class="page-view" id="page-settings">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Ballistic Configuration & Preferences</h1>
+            <p class="page-subtitle">All parameters are saved locally in browser storage</p>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="resetPrototypeState()">Reset All Prototype Data</button>
+        </div>
+
+        <div class="settings-layout">
+          <div class="glass-card settings-subnav" style="height:fit-content;padding:10px;">
+            <button class="nav-item active" data-stab="general" onclick="switchSettingsTab('general', this)">General & Tray</button>
+            <button class="nav-item" data-stab="appearance" onclick="switchSettingsTab('appearance', this)">Appearance & Motion</button>
+            <button class="nav-item" data-stab="transfers" onclick="switchSettingsTab('transfers', this)">Transfers & Multi-Link</button>
+            <button class="nav-item" data-stab="security" onclick="switchSettingsTab('security', this)">Security & Identity</button>
+          </div>
+
+          <div>
+            <!-- GENERAL -->
+            <div class="glass-card settings-panel" id="stab-general">
+              <div class="card-title" style="margin-bottom:12px;">Desktop Behavior</div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Launch on Windows Startup</div>
+                  <div class="settings-label-desc">Start minimized in Windows System Tray</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setStartup" checked onchange="saveSettingsFromUI()">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Window Close (X) Behavior</div>
+                  <div class="settings-label-desc">Action when clicking the close caption button</div>
+                </div>
+                <select class="select-control" id="setCloseBehavior" onchange="saveSettingsFromUI()">
+                  <option value="tray">Minimize to system tray</option>
+                  <option value="exit">Completely exit application</option>
+                  <option value="ask">Ask every time</option>
+                </select>
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Default Download Path</div>
+                  <div class="settings-label-desc">Destination directory for accepted incoming transfers</div>
+                </div>
+                <input type="text" class="input-control" id="setDefaultFolder" value="D:\EtherTransfers\Incoming" style="width:260px;font-family:var(--font-mono);" onchange="saveSettingsFromUI()">
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Tactile Audio FX (Web Audio API)</div>
+                  <div class="settings-label-desc">Play synthesized kinetic audio cues on transfers and verification</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setAudioFx" checked onchange="toggleAudioFx(this.checked)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- APPEARANCE -->
+            <div class="glass-card settings-panel" id="stab-appearance" style="display:none;">
+              <div class="card-title" style="margin-bottom:12px;">Monochrome Theme & Visuals</div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Application Theme</div>
+                  <div class="settings-label-desc">Strict Monochrome Dark or Light palette</div>
+                </div>
+                <select class="select-control" id="setThemeSelect" onchange="applyThemeSetting(this.value)">
+                  <option value="dark">Monochrome Dark</option>
+                  <option value="light">Monochrome Light</option>
+                </select>
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Ballistic Trajectory Style</div>
+                  <div class="settings-label-desc">Select visual physics model for particle packet streams</div>
+                </div>
+                <select class="select-control" id="setTrajectorySelect" onchange="setTrajectoryMode(this.value)">
+                  <option value="hyper-rail">Hyper-Rail (Linear supersonic streaks)</option>
+                  <option value="coil-arc">Coil Arc (Electromagnetic bezier arcs)</option>
+                  <option value="quantum">Quantum Ballistic Scatter (High kinetic dispersion)</option>
+                </select>
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Reduced Motion Override</div>
+                  <div class="settings-label-desc">Minimize transitions and slow down particle streams</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setReducedMotion" onchange="toggleReducedMotionSetting(this.checked)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- TRANSFERS -->
+            <div class="glass-card settings-panel" id="stab-transfers" style="display:none;">
+              <div class="card-title" style="margin-bottom:12px;">Multi-Link Scheduling</div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Default Transfer Mode</div>
+                  <div class="settings-label-desc">Session execution strategy</div>
+                </div>
+                <select class="select-control" id="setTransferMode" onchange="updateTransferModeSetting(this.value)">
+                  <option value="Queued">Queued (Sequential 1-by-1)</option>
+                  <option value="Multi-Transfer" selected>Multi-Transfer (Concurrent)</option>
+                  <option value="Mixed">Mixed (Intelligent Queue)</option>
+                </select>
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Max Concurrent Jobs</div>
+                  <div class="settings-label-desc">Simultaneous active transfers (1 to 16)</div>
+                </div>
+                <input type="number" min="1" max="16" step="1" class="input-control" id="setMaxConcurrent" value="3" style="width:80px;font-family:var(--font-mono);" onchange="validateAndSaveConcurrent(this)">
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Multi-Link Ethernet Aggregation</div>
+                  <div class="settings-label-desc">Combine multiple independent Ethernet adapters</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="setMultiLinkEnabled" checked onchange="toggleMultiLinkMaster(this.checked)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div style="margin-top:14px;">
+                <div style="font-size:12px;font-weight:600;margin-bottom:8px;">Network Adapters:</div>
+                <div id="settingsAdaptersList" style="display:flex;flex-direction:column;gap:8px;"></div>
+              </div>
+            </div>
+
+            <!-- SECURITY -->
+            <div class="glass-card settings-panel" id="stab-security" style="display:none;">
+              <div class="card-title" style="margin-bottom:12px;">Cryptographic Identity</div>
+
+              <div style="background:var(--bg-surface-elevated);border:1px solid var(--border-specular);border-radius:var(--radius-sm);padding:12px;margin-bottom:14px;font-size:12px;">
+                <strong>Local Identity:</strong> <code>WORKSTATION-PRO</code> • Ed25519 Fingerprint: <code>SHA256:8F:4A:9C:11:E2:7B:04:9A</code><br>
+                <span style="color:var(--text-secondary);">Every incoming transfer requires manual explicit approval.</span>
+              </div>
+
+              <div class="settings-row">
+                <div>
+                  <div class="settings-label-title">Approval Timeout</div>
+                  <div class="settings-label-desc">Auto-decline unanswered incoming requests</div>
+                </div>
+                <select class="select-control" id="setApprovalTimeout" onchange="saveSettingsFromUI()">
+                  <option value="60">60 seconds</option>
+                  <option value="120" selected>120 seconds</option>
+                  <option value="300">300 seconds</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- SYSTEM TRAY RESTORE PILL -->
+<div class="minimized-restore-bar" id="minimizedRestoreBar">
+  <span class="eth-dot"></span>
+  <span style="font-size:12.5px;font-weight:600;">EtherConnectedBallisticFiles (System Tray — 285 MB/s active)</span>
+  <button class="btn btn-primary btn-sm" onclick="restoreFromTray()">Open Window</button>
+</div>
+
+<!-- SYSTEM TRAY FLYOUT -->
+<div class="tray-flyout" id="trayFlyout">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border-subtle);">
+    <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;">
+      <span class="eth-dot"></span>
+      EtherConnectedBallisticFiles
+    </div>
+    <span class="badge badge-info">285 MB/s</span>
+  </div>
+
+  <div style="background:var(--bg-surface-elevated);padding:8px 10px;border-radius:var(--radius-xs);border:1px solid var(--border-subtle);font-size:11.5px;font-family:var(--font-mono);">
+    <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+      <span>Project_Backup.zip</span>
+      <span id="trayProgressPct">67%</span>
+    </div>
+    <div class="progress-track" style="height:5px;">
+      <div class="progress-fill" id="trayProgressFill" style="width:67%;"></div>
+    </div>
+  </div>
+
+  <button class="tray-menu-btn" onclick="restoreFromTray();toggleTrayFlyout(false)">Open Window</button>
+  <button class="tray-menu-btn" onclick="restoreFromTray();navigateTo('transfers');toggleTrayFlyout(false)">View Telemetry</button>
+  <button class="tray-menu-btn" onclick="pauseAllTransfers()">Pause All</button>
+  <button class="tray-menu-btn" onclick="resumeAllTransfers()">Resume All</button>
+</div>
+
+<!-- SEND FILES MODAL -->
+<div class="modal-backdrop" id="sendFilesModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        Send Files Over Multi-Link Ballistic Ethernet
+      </div>
+      <button class="btn btn-sm" onclick="closeModal('sendFilesModal')">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div class="lifecycle-step active" id="sendStepTab1">1. Destination</div>
+      <div class="lifecycle-step" id="sendStepTab2">2. Payload</div>
+      <div class="lifecycle-step" id="sendStepTab3">3. Launch</div>
+    </div>
+    <div id="sendWizardBody" style="min-height:240px;"></div>
+    <div class="modal-footer" id="sendWizardFooter"></div>
+  </div>
+</div>
+
+<!-- PAIRING MODAL -->
+<div class="modal-backdrop" id="pairingModal">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-header">
+      <div class="modal-title">Device Cryptographic Pairing</div>
+      <button class="btn btn-sm" onclick="closeModal('pairingModal')">✕</button>
+    </div>
+    <div id="pairingModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('pairingModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmDevicePairing()">Trust & Pair Device</button>
+    </div>
+  </div>
+</div>
+
+<!-- INCOMING APPROVAL MODAL -->
+<div class="modal-backdrop" id="incomingModal">
+  <div class="modal-box" style="max-width:620px;">
+    <div class="modal-header">
+      <div class="modal-title">Incoming File Transfer Approval</div>
+      <button class="btn btn-sm" onclick="closeModal('incomingModal')">✕</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:11.5px;color:var(--text-secondary);">Scenario:</span>
+      <div class="tabs-bar">
+        <button class="tab-btn active" id="incTabTrusted" onclick="renderIncomingScenario('trusted')">Trusted Peer</button>
+        <button class="tab-btn" id="incTabUnknown" onclick="renderIncomingScenario('unknown')">Untrusted Peer</button>
+        <button class="tab-btn" id="incTabExpired" onclick="renderIncomingScenario('expired')">Expired</button>
+      </div>
+    </div>
+    <div id="incomingModalBody"></div>
+    <div class="modal-footer" id="incomingModalFooter"></div>
+  </div>
+</div>
+
+<!-- 12-STATE EXPLORER MODAL -->
+<div class="modal-backdrop" id="stateSimModal">
+  <div class="modal-box" style="max-width:660px;">
+    <div class="modal-header">
+      <div class="modal-title">Simulate 12 Empty & Error States</div>
+      <button class="btn btn-sm" onclick="closeModal('stateSimModal')">✕</button>
+    </div>
+    <div class="grid-2" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;">
+      <button class="btn btn-primary" onclick="applySystemErrorState('normal')">✓ Restore Normal State</button>
+      <button class="btn" onclick="applySystemErrorState('no_devices')">1. No Devices Discovered</button>
+      <button class="btn" onclick="applySystemErrorState('no_trusted')">2. No Trusted Computers</button>
+      <button class="btn" onclick="applySystemErrorState('no_active_transfers')">3. No Active Transfers</button>
+      <button class="btn" onclick="applySystemErrorState('empty_history')">4. Empty History</button>
+      <button class="btn" onclick="applySystemErrorState('no_adapter')">5. No Ethernet Adapter</button>
+      <button class="btn" onclick="applySystemErrorState('cable_unplugged')">6. Cable Unplugged</button>
+      <button class="btn" onclick="applySystemErrorState('firewall_blocked')">7. Firewall Blocked</button>
+      <button class="btn" onclick="applySystemErrorState('receiver_unavailable')">8. Receiver Unavailable</button>
+      <button class="btn" onclick="applySystemErrorState('dest_unavailable')">9. Folder Unavailable</button>
+      <button class="btn" onclick="applySystemErrorState('disk_full')">10. Insufficient Disk</button>
+      <button class="btn" onclick="applySystemErrorState('transfer_interrupted')">11. Transfer Interrupted</button>
+      <button class="btn" onclick="applySystemErrorState('verification_failed')">12. Verification Failed</button>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('stateSimModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-stack" id="toastStack"></div>
+<input type="file" id="hiddenBrowserFileInput" multiple style="display:none;" onchange="handleRealFileInputPicked(event)">
+
+<!-- ============================================================================
+   BALLISTIC JAVASCRIPT KINETIC ENGINE & STATE MANAGEMENT
+   ============================================================================ */ -->
+<script>
+const STORAGE_KEY = 'ether_connected_ballistic_files_v32';
+
+let audioCtx = null;
+function getAudioContext() {
+  if (!audioCtx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (AudioContextClass) audioCtx = new AudioContextClass();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+  return audioCtx;
+}
+
+function playBallisticSound(type) {
+  if (document.documentElement.getAttribute('data-fx-sound') !== 'true') return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+
+    if (type === 'salvo') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(340, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.18);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.19);
+    } else if (type === 'impact') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, now);
+      osc.frequency.exponentialRampToValueAtTime(440, now + 0.08);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    } else if (type === 'verified') {
+      [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + i * 0.05);
+        gain.gain.setValueAtTime(0.08, now + i * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.05 + 0.22);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + i * 0.05);
+        osc.stop(now + i * 0.05 + 0.23);
+      });
+    } else if (type === 'alert') {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.setValueAtTime(180, now + 0.1);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.23);
+    }
+  } catch (e) {
+    // Audio context may be restricted before gesture
+  }
+}
+
+function getInitialState() {
+  return {
+    theme: 'dark',
+    transparency: true,
+    reducedMotion: false,
+    audioFx: true,
+    trajectoryMode: 'hyper-rail', // hyper-rail | coil-arc | quantum
+    closeBehavior: 'tray',
+    defaultFolder: 'D:\\EtherTransfers\\Incoming',
+    transferMode: 'Multi-Transfer',
+    maxConcurrent: 3,
+    multiLinkEnabled: true,
+    systemErrorState: 'normal',
+    emptyHistoryDemo: false,
+
+    adapters: [
+      {
+        id: 'eth-usb32',
+        name: 'USB Ethernet 3.2 Gen 2',
+        chipset: 'Realtek RTL8156B 2.5GbE',
+        linkSpeed: '2.5 Gbps',
+        simSpeedMBs: 195,
+        status: 'connected',
+        enabled: true,
+        usableIndependentPath: true,
+        subnet: '192.168.20.10/24'
+      },
+      {
+        id: 'eth-intel',
+        name: 'Intel Ethernet I225-V',
+        chipset: 'PCIe Integrated 1.0 Gbps',
+        linkSpeed: '1.0 Gbps',
+        simSpeedMBs: 90,
+        status: 'connected',
+        enabled: true,
+        usableIndependentPath: true,
+        subnet: '192.168.10.10/24'
+      },
+      {
+        id: 'eth-usb20',
+        name: 'USB Ethernet 2.0 Adapter',
+        chipset: 'ASIX AX88772 Fast Ethernet',
+        linkSpeed: '100 Mbps',
+        simSpeedMBs: 11,
+        status: 'standby',
+        enabled: false,
+        usableIndependentPath: false,
+        subnet: '192.168.10.11/24 (Shared Switch)'
+      }
+    ],
+
+    devices: [
+      {
+        id: 'dev-studio',
+        name: 'DESKTOP-STUDIO',
+        ip: '192.168.10.22 / 192.168.20.22',
+        mac: '00:1B:63:84:45:E6',
+        fingerprint: 'SHA256:9A:3F:11:C8:7D:20:4E:B1',
+        status: 'online',
+        trusted: true,
+        lastSeen: 'Active now',
+        paths: ['USB Ethernet 3.2 (2.5 Gbps)', 'Intel Ethernet (1 Gbps)'],
+        usablePathsCount: 2,
+        role: 'VFX Workstation'
+      },
+      {
+        id: 'dev-gaming',
+        name: 'GAMING-PC',
+        ip: '192.168.10.45 / 192.168.20.45',
+        mac: 'D8:BB:C1:40:91:0A',
+        fingerprint: 'SHA256:4C:82:09:FA:19:3B:77:E2',
+        status: 'online',
+        trusted: true,
+        lastSeen: 'Active now',
+        paths: ['USB Ethernet 3.2 (2.5 Gbps)', 'Intel Ethernet (1 Gbps)'],
+        usablePathsCount: 2,
+        role: '3D Render & Unreal Engine Node'
+      },
+      {
+        id: 'dev-laptop',
+        name: 'LAPTOP-WORK',
+        ip: '192.168.10.68',
+        mac: 'A4:83:E7:19:02:5C',
+        fingerprint: 'SHA256:7E:12:55:B0:89:C1:33:0F',
+        status: 'online',
+        trusted: false,
+        lastSeen: 'Discovered 1m ago',
+        paths: ['Intel Ethernet (1 Gbps)'],
+        usablePathsCount: 1,
+        role: 'Mobile Field Ingest Laptop'
+      },
+      {
+        id: 'dev-nas',
+        name: 'ARCHIVE-SERVER-01',
+        ip: '192.168.10.90',
+        mac: '70:85:C2:99:10:4B',
+        fingerprint: 'SHA256:1F:90:AA:42:67:D1:08:5B',
+        status: 'connecting',
+        trusted: true,
+        lastSeen: 'Negotiating link...',
+        paths: ['Intel Ethernet (1 Gbps)'],
+        usablePathsCount: 1,
+        role: 'Cold Storage Vault'
+      },
+      {
+        id: 'dev-render2',
+        name: 'RENDER-NODE-02',
+        ip: '192.168.10.105',
+        mac: '54:BF:64:71:22:9E',
+        fingerprint: 'SHA256:6B:21:8F:03:CC:41:90:7D',
+        status: 'interrupted',
+        trusted: true,
+        lastSeen: 'Link lost 14m ago',
+        paths: ['No carrier'],
+        usablePathsCount: 0,
+        role: 'Secondary Rig'
+      }
+    ],
+
+    transfers: [
+      {
+        id: 'tr-101',
+        name: 'Project_Backup.zip',
+        peer: 'DESKTOP-STUDIO',
+        direction: 'Sending',
+        fileCount: 142,
+        totalSizeGB: 12.5,
+        progressPct: 67.4,
+        currentSpeedMBs: 285,
+        avgSpeedMBs: 268,
+        peakSpeedMBs: 312,
+        status: 'active',
+        lifecycle: 'receiving',
+        priority: 'High',
+        sessionMode: 'Multi-Transfer',
+        multiLink: true
+      },
+      {
+        id: 'tr-102',
+        name: 'Unreal_Lightmap_Cache_v4.pak',
+        peer: 'GAMING-PC',
+        direction: 'Sending',
+        fileCount: 18,
+        totalSizeGB: 8.2,
+        progressPct: 34.0,
+        currentSpeedMBs: 90,
+        avgSpeedMBs: 88,
+        peakSpeedMBs: 105,
+        status: 'active',
+        lifecycle: 'receiving',
+        priority: 'Normal',
+        sessionMode: 'Multi-Transfer',
+        multiLink: false
+      },
+      {
+        id: 'tr-103',
+        name: 'RAW_Camera_Reel_A004/',
+        peer: 'DESKTOP-STUDIO',
+        direction: 'Sending',
+        fileCount: 310,
+        totalSizeGB: 24.0,
+        progressPct: 0,
+        currentSpeedMBs: 0,
+        avgSpeedMBs: 0,
+        peakSpeedMBs: 0,
+        status: 'queued',
+        lifecycle: 'receiving',
+        priority: 'Auto',
+        sessionMode: 'Queued',
+        multiLink: true
+      }
+    ],
+
+    history: [
+      {
+        id: 'hist-1',
+        name: 'DaVinci_Resolve_Timeline_8K.drp',
+        peer: 'DESKTOP-STUDIO',
+        timestamp: 'Today, 13:18',
+        size: '18.40 GB',
+        duration: '01m 06s',
+        avgSpeed: '284 MB/s',
+        result: 'completed',
+        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      },
+      {
+        id: 'hist-2',
+        name: 'Blender_Fluid_Bake_Cache/',
+        peer: 'GAMING-PC',
+        timestamp: 'Today, 11:42',
+        size: '9.60 GB',
+        duration: '00m 38s',
+        avgSpeed: '258 MB/s',
+        result: 'completed',
+        hash: '7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069'
+      }
+    ]
+  };
+}
+
+let state = loadState();
+let currentDeviceFilter = 'all';
+let currentTransferFilter = 'all';
+let redistributedChunksActive = false;
+
+let sendWizard = {
+  step: 1,
+  destinationDeviceId: 'dev-studio',
+  files: [
+    { name: 'Final_Master_Reel_ProRes4444.mov', sizeGB: 7.8, type: 'file' },
+    { name: 'VFX_OpenEXR_Plates_Sequence/', sizeGB: 4.7, type: 'folder' }
+  ],
+  destinationFolder: 'D:\\EtherTransfers\\Incoming',
+  sessionMode: 'Multi-Transfer',
+  multiLink: true,
+  priority: 'Auto'
+};
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return Object.assign(getInitialState(), JSON.parse(raw));
+  } catch (e) {}
+  return getInitialState();
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {}
+}
+
+function resetPrototypeState() {
+  localStorage.removeItem(STORAGE_KEY);
+  state = getInitialState();
+  redistributedChunksActive = false;
+  applyThemeSetting(state.theme);
+  refreshEntireUI();
+  showToast('Reset Complete', 'Ballistic prototype restored to default state.');
+}
+
+function isDarkEffective() {
+  return document.documentElement.getAttribute('data-theme') !== 'light';
+}
+
+function getActiveAdapters() {
+  if (!state.multiLinkEnabled) {
+    const first = state.adapters.find(a => a.status === 'connected');
+    return first ? [first] : [];
+  }
+  return state.adapters.filter(a => a.status === 'connected' && a.usableIndependentPath);
+}
+
+function getCombinedSimulatedSpeed() {
+  if (state.systemErrorState === 'no_adapter' || state.systemErrorState === 'cable_unplugged') return 0;
+  return getActiveAdapters().reduce((s, a) => s + a.simSpeedMBs, 0);
+}
+
+/* ============================================================================
+   BALLISTIC CANVAS ENGINE (HYPER-RAIL, COIL ARC, QUANTUM SCATTER)
+   ============================================================================ */
+const pCanvas = document.getElementById('particleCanvas');
+const pCtx = pCanvas.getContext('2d');
+const sCanvas = document.getElementById('speedChartCanvas');
+const sCtx = sCanvas.getContext('2d');
+
+let particles = [];
+let kineticRipples = [];
+let speedHistory = new Array(50).fill(280);
+
+function initBallisticParticles() {
+  particles = [];
+  for (let i = 0; i < 64; i++) {
+    particles.push({
+      lane: i % 2,
+      x: Math.random(),
+      speed: 0.008 + Math.random() * 0.016,
+      length: 12 + Math.random() * 24,
+      width: 1.5 + Math.random() * 2,
+      arcOffset: (Math.random() - 0.5) * 50,
+      alpha: 0.4 + Math.random() * 0.6
+    });
+  }
+}
+
+function resizeCanvases() {
+  if (pCanvas && pCanvas.parentElement) {
+    pCanvas.width = pCanvas.parentElement.clientWidth || 600;
+    pCanvas.height = 200;
+  }
+  if (sCanvas && sCanvas.parentElement) {
+    sCanvas.width = sCanvas.parentElement.clientWidth || 500;
+    sCanvas.height = 170;
+  }
+}
+
+function triggerBallisticBurst() {
+  const senderNode = document.getElementById('nodeSender');
+  const receiverNode = document.getElementById('nodeReceiver');
+  if (senderNode) senderNode.classList.add('firing');
+  setTimeout(() => senderNode && senderNode.classList.remove('firing'), 350);
+
+  // Add hypersonic kinetic salvo
+  for (let i = 0; i < 28; i++) {
+    particles.push({
+      lane: i % 2,
+      x: 0,
+      speed: 0.024 + Math.random() * 0.028,
+      length: 30 + Math.random() * 40,
+      width: 2.5 + Math.random() * 2.5,
+      arcOffset: (Math.random() - 0.5) * 70,
+      alpha: 1
+    });
+  }
+
+  // Receiver impact ripple
+  setTimeout(() => {
+    if (receiverNode) receiverNode.classList.add('firing');
+    setTimeout(() => receiverNode && receiverNode.classList.remove('firing'), 350);
+    kineticRipples.push({ x: pCanvas.width - 24, y: 100, r: 4, alpha: 1 });
+    playBallisticSound('impact');
+  }, 320);
+
+  playBallisticSound('salvo');
+  flashRandomChunk();
+  showToast('Kinetic Salvo Fired', 'Hypersonic particle burst accelerated across 2.5G & 1.0G lanes.');
+}
+
+function flashRandomChunk() {
+  const cells = document.querySelectorAll('.chunk-cell');
+  if (cells.length > 0) {
+    const pick = cells[Math.floor(Math.random() * cells.length)];
+    pick.classList.add('flashing');
+    setTimeout(() => pick.classList.remove('flashing'), 400);
+  }
+}
+
+function drawBallisticCanvas() {
+  if (!pCtx) return;
+  const w = pCanvas.width;
+  const h = pCanvas.height;
+  pCtx.clearRect(0, 0, w, h);
+
+  const dark = isDarkEffective();
+  const activeAdapters = getActiveAdapters();
+  const anyActive = state.transfers.some(t => t.status === 'active');
+  const laneY = [58, 142];
+
+  // Draw Lane Rail Guides
+  state.adapters.slice(0, 2).forEach((adapter, idx) => {
+    const y = laneY[idx];
+    const isUp = anyActive && activeAdapters.some(a => a.id === adapter.id);
+    pCtx.beginPath();
+    pCtx.moveTo(20, y);
+    pCtx.lineTo(w - 20, y);
+    pCtx.strokeStyle = isUp ? (dark ? '#525252' : '#CCCCCC') : (dark ? '#222222' : '#E5E5E5');
+    pCtx.lineWidth = isUp ? 2 : 1;
+    pCtx.setLineDash(isUp ? [] : [4, 6]);
+    pCtx.stroke();
+    pCtx.setLineDash([]);
+
+    pCtx.font = '600 10.5px "Geist Mono", monospace';
+    pCtx.fillStyle = isUp ? (dark ? '#FFFFFF' : '#000000') : (dark ? '#666666' : '#999999');
+    pCtx.fillText(`${adapter.name} (${adapter.linkSpeed}) — ${isUp ? `${adapter.simSpeedMBs} MB/s HYPERSONIC` : 'STANDBY'}`, 24, y - 10);
+  });
+
+  // Render Ballistic Hypersonic Particles
+  const mode = state.trajectoryMode;
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    const adapter = state.adapters[p.lane];
+    const isLaneActive = anyActive && activeAdapters.some(a => a && a.id === adapter.id);
+    if (!isLaneActive && p.x > 0) {
+      particles.splice(i, 1);
+      continue;
+    }
+
+    const mult = state.reducedMotion ? 0.2 : 1;
+    p.x += p.speed * mult;
+
+    let px = 20 + p.x * (w - 40);
+    let py = laneY[p.lane];
+
+    if (mode === 'coil-arc') {
+      py += Math.sin(p.x * Math.PI) * p.arcOffset;
+    } else if (mode === 'quantum') {
+      py += Math.sin(p.x * Math.PI * 4) * (p.arcOffset * 0.3);
+    }
+
+    // Draw particle head and streak
+    const trailLen = p.length * (mode === 'hyper-rail' ? 1.5 : 1);
+    const grad = pCtx.createLinearGradient(px - trailLen, py, px, py);
+    grad.addColorStop(0, 'rgba(255,255,255,0)');
+    grad.addColorStop(1, dark ? `rgba(255,255,255,${p.alpha})` : `rgba(0,0,0,${p.alpha})`);
+
+    pCtx.beginPath();
+    pCtx.moveTo(px - trailLen, py);
+    pCtx.lineTo(px, py);
+    pCtx.strokeStyle = grad;
+    pCtx.lineWidth = p.width;
+    pCtx.lineCap = 'round';
+    pCtx.stroke();
+
+    // Head dot
+    pCtx.beginPath();
+    pCtx.arc(px, py, p.width * 0.9, 0, Math.PI * 2);
+    pCtx.fillStyle = dark ? '#FFFFFF' : '#000000';
+    pCtx.fill();
+
+    if (p.x >= 1) {
+      // Impact ripple
+      kineticRipples.push({ x: w - 24, y: laneY[p.lane], r: 3, alpha: 0.8 });
+      p.x = 0;
+      p.alpha = 0.4 + Math.random() * 0.6;
+    }
+  }
+
+  // Draw Kinetic Impact Ripples
+  for (let r = kineticRipples.length - 1; r >= 0; r--) {
+    const rip = kineticRipples[r];
+    pCtx.beginPath();
+    pCtx.arc(rip.x, rip.y, rip.r, 0, Math.PI * 2);
+    pCtx.strokeStyle = dark ? `rgba(255,255,255,${rip.alpha})` : `rgba(0,0,0,${rip.alpha})`;
+    pCtx.lineWidth = 1.5;
+    pCtx.stroke();
+
+    rip.r += 1.8;
+    rip.alpha -= 0.045;
+    if (rip.alpha <= 0) kineticRipples.splice(r, 1);
+  }
+}
+
+function drawSpeedTelemetry() {
+  if (!sCtx) return;
+  const w = sCanvas.width;
+  const h = sCanvas.height;
+  sCtx.clearRect(0, 0, w, h);
+
+  const dark = isDarkEffective();
+  sCtx.strokeStyle = dark ? '#222222' : '#E5E5E5';
+  sCtx.lineWidth = 1;
+  for (let i = 1; i <= 3; i++) {
+    const gy = (h / 4) * i;
+    sCtx.beginPath();
+    sCtx.moveTo(0, gy);
+    sCtx.lineTo(w, gy);
+    sCtx.stroke();
+  }
+
+  const maxVal = 360;
+  const stepX = w / (speedHistory.length - 1);
+
+  sCtx.beginPath();
+  speedHistory.forEach((v, i) => {
+    const x = i * stepX;
+    const y = h - Math.min(h - 10, (v / maxVal) * (h - 24)) - 6;
+    if (i === 0) sCtx.moveTo(x, y);
+    else sCtx.lineTo(x, y);
+  });
+  sCtx.strokeStyle = dark ? '#FFFFFF' : '#000000';
+  sCtx.lineWidth = 2.2;
+  sCtx.stroke();
+
+  sCtx.lineTo(w, h);
+  sCtx.lineTo(0, h);
+  sCtx.closePath();
+  const grad = sCtx.createLinearGradient(0, 0, 0, h);
+  grad.addColorStop(0, dark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.14)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+  sCtx.fillStyle = grad;
+  sCtx.fill();
+}
+
+function animationLoop() {
+  drawBallisticCanvas();
+  requestAnimationFrame(animationLoop);
+}
+
+/* ============================================================================
+   TELEMETRY INTERVAL & REALTIME METRICS
+   ============================================================================ */
+setInterval(() => {
+  const anyActive = state.transfers.some(t => t.status === 'active');
+  const base = getCombinedSimulatedSpeed();
+  const jitter = anyActive && base > 0 ? Math.round((Math.random() - 0.48) * 16) : 0;
+  const live = anyActive ? Math.max(0, base + jitter) : 0;
+
+  speedHistory.push(live);
+  if (speedHistory.length > 50) speedHistory.shift();
+
+  state.transfers.forEach(t => {
+    if (t.status === 'active' && t.lifecycle === 'receiving' && live > 0) {
+      t.currentSpeedMBs = live;
+      t.progressPct = Math.min(99.9, +(t.progressPct + 0.16).toFixed(2));
+    }
+  });
+
+  const curEl = document.getElementById('graphCurrentSpeed');
+  if (curEl) curEl.textContent = `${live} MB/s`;
+  const homeEl = document.getElementById('homeLiveThroughput');
+  if (homeEl) homeEl.textContent = `${live} MB/s`;
+
+  const primary = state.transfers[0];
+  if (primary) {
+    const doneGB = ((primary.progressPct / 100) * primary.totalSizeGB).toFixed(2);
+    const transEl = document.getElementById('graphDataTransferred');
+    if (transEl) transEl.textContent = `Transferred: ${doneGB} GB of ${primary.totalSizeGB.toFixed(2)} GB`;
+    const badgeEl = document.getElementById('vizProgressBadge');
+    if (badgeEl) badgeEl.textContent = `${primary.progressPct.toFixed(1)}%`;
+  }
+
+  drawSpeedTelemetry();
+}, 850);
+
+/* ============================================================================
+   UI RENDERING & ROUTING
+   ============================================================================ */
+function navigateTo(pageId) {
+  document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById('page-' + pageId);
+  if (target) target.classList.add('active');
+
+  document.querySelectorAll('.sidebar .nav-item').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === pageId);
+  });
+
+  if (pageId === 'transfers') resizeCanvases();
+  playBallisticSound('impact');
+}
+
+function toggleTrajectoryMode() {
+  const modes = ['hyper-rail', 'coil-arc', 'quantum'];
+  const next = modes[(modes.indexOf(state.trajectoryMode) + 1) % modes.length];
+  setTrajectoryMode(next);
+}
+
+function setTrajectoryMode(mode) {
+  state.trajectoryMode = mode;
+  document.getElementById('trajectoryModeLabel').textContent = mode.toUpperCase();
+  const sel = document.getElementById('setTrajectorySelect');
+  if (sel) sel.value = mode;
+  saveState();
+  playBallisticSound('impact');
+  showToast('Trajectory Mode', `Switched to ${mode.toUpperCase()} ballistic physics.`);
+}
+
+function toggleAudioFx(force) {
+  state.audioFx = typeof force === 'boolean' ? force : !state.audioFx;
+  document.documentElement.setAttribute('data-fx-sound', state.audioFx ? 'true' : 'false');
+  document.getElementById('audioFxLabel').textContent = state.audioFx ? 'FX: ON' : 'FX: OFF';
+  const cb = document.getElementById('setAudioFx');
+  if (cb) cb.checked = state.audioFx;
+  saveState();
+  if (state.audioFx) playBallisticSound('verified');
+  showToast('Tactile Sound', state.audioFx ? 'Ballistic audio cues enabled.' : 'Muted audio cues.');
+}
+
+function cycleQuickTheme() {
+  applyThemeSetting(state.theme === 'dark' ? 'light' : 'dark');
+}
+
+function applyThemeSetting(mode) {
+  state.theme = mode;
+  document.documentElement.setAttribute('data-theme', mode);
+  document.getElementById('quickThemeLabel').textContent = mode.charAt(0).toUpperCase() + mode.slice(1);
+  const sel = document.getElementById('setThemeSelect');
+  if (sel) sel.value = mode;
+  saveState();
+  refreshEntireUI();
+  drawSpeedTelemetry();
+}
+
+function toggleReducedMotionSetting(enabled) {
+  state.reducedMotion = enabled;
+  document.documentElement.setAttribute('data-reduced-motion', enabled ? 'true' : 'false');
+  const cb = document.getElementById('setReducedMotion');
+  if (cb) cb.checked = enabled;
+  saveState();
+}
+
+/* ============================================================================
+   VIEWS & MODALS
+   ============================================================================ */
+function renderChunkMatrix() {
+  const grid = document.getElementById('chunkMatrixGrid');
+  if (!grid) return;
+  const active = getActiveAdapters();
+  const usbUp = active.some(a => a.id === 'eth-usb32');
+  const intelUp = active.some(a => a.id === 'eth-intel');
+
+  let html = '';
+  for (let i = 401; i <= 424; i++) {
+    let cls = 'path-1';
+    let lbl = '2.5G';
+    if (!usbUp && intelUp) {
+      if (redistributedChunksActive && i % 3 !== 0) {
+        cls = 'redistributed';
+        lbl = 'RE-1G';
+      } else {
+        cls = 'path-2';
+        lbl = '1G';
+      }
+    } else if (usbUp && intelUp) {
+      if (i % 3 === 0) {
+        cls = 'path-2';
+        lbl = '1G';
+      }
+    }
+    html += `<div class="chunk-cell ${cls}" onclick="flashRandomChunk()">#${i}<br>${lbl}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function renderSidebar() {
+  const active = getActiveAdapters();
+  const combined = getCombinedSimulatedSpeed();
+  const dot = document.getElementById('sidebarEthDot');
+  const title = document.getElementById('sidebarEthTitle');
+  const rate = document.getElementById('sidebarEthRate');
+  const sub = document.getElementById('sidebarEthSub');
+  const list = document.getElementById('sidebarAdapterList');
+
+  if (active.length === 0) {
+    dot.className = 'eth-dot error';
+    title.textContent = 'Disconnected';
+    rate.textContent = '0 Gbps';
+    sub.textContent = 'No carrier detected';
+  } else if (active.length === 1) {
+    dot.className = 'eth-dot warn';
+    title.textContent = 'Single Path';
+    rate.textContent = active[0].linkSpeed;
+    sub.textContent = `WORKSTATION-PRO • 1 Path (${combined} MB/s)`;
+  } else {
+    dot.className = 'eth-dot';
+    title.textContent = 'Multi-Link Ready';
+    rate.textContent = '3.5 Gbps';
+    sub.textContent = `WORKSTATION-PRO • ${active.length} Ballistic Paths (~${combined} MB/s)`;
+  }
+
+  list.innerHTML = state.adapters.map(a => `
+    <div class="eth-adapter-mini-row">
+      <span>${a.status === 'connected' ? '●' : '○'} ${a.name}</span>
+      <span style="font-family:var(--font-mono);">${a.status === 'connected' ? a.linkSpeed : 'STANDBY'}</span>
+    </div>
+  `).join('');
+}
+
+function renderHomePage() {
+  const active = getActiveAdapters();
+  document.getElementById('homeAdapterBars').innerHTML = state.adapters.map(a => {
+    const isUsed = active.some(x => x.id === a.id);
+    const pct = isUsed ? Math.min(100, Math.round((a.simSpeedMBs / 220) * 100)) : 0;
+    return `
+      <div style="background:var(--bg-surface-elevated);padding:10px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;">
+          <div><strong>${a.name}</strong> <span style="color:var(--text-secondary);font-family:var(--font-mono);">(${a.linkSpeed})</span></div>
+          <span class="badge ${isUsed ? 'badge-success' : 'badge-neutral'}">${isUsed ? `● ${a.simSpeedMBs} MB/s Active` : 'Standby'}</span>
+        </div>
+        <div class="progress-track" style="height:5px;">
+          <div class="progress-fill" style="width:${pct}%;"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('homeRecentActivityList').innerHTML = state.history.slice(0, 3).map(h => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--bg-surface-elevated);border-radius:var(--radius-sm);border:1px solid var(--border-subtle);font-size:12px;">
+      <div>
+        <div style="font-weight:600;">${h.name}</div>
+        <div style="color:var(--text-secondary);font-size:11px;font-family:var(--font-mono);">${h.peer} • ${h.size} • ${h.avgSpeed}</div>
+      </div>
+      <span class="badge ${h.result === 'completed' ? 'badge-success' : 'badge-danger'}">${h.result === 'completed' ? '✓ Verified' : '✕ Failed'}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('homeDevicesGrid').innerHTML = state.devices.slice(0, 3).map(d => buildDeviceCardHTML(d, true)).join('');
+}
+
+function buildDeviceCardHTML(d, compact = false) {
+  const statusBadge = d.status === 'online' ? '<span class="badge badge-success">● Online</span>' : '<span class="badge badge-neutral">○ Offline</span>';
+  const trustBadge = d.trusted ? '<span class="badge badge-info">✓ Trusted Peer</span>' : '<span class="badge badge-warning">! Untrusted</span>';
+
+  return `
+    <div class="glass-card device-card">
+      <div>
+        <div class="device-card-top">
+          <div style="display:flex;gap:11px;align-items:center;">
+            <div class="device-avatar">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:600;font-family:var(--font-mono);">${d.name}</div>
+              <div style="font-size:11.5px;color:var(--text-secondary);">${d.role}</div>
+            </div>
+          </div>
+          ${statusBadge}
+        </div>
+
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:12px 0;">
+          ${trustBadge}
+          <span class="badge badge-neutral">${d.usablePathsCount} Ballistic Path${d.usablePathsCount === 1 ? '' : 's'}</span>
+        </div>
+
+        <div class="device-meta-list">
+          <div class="device-meta-row"><span>IPv4</span><code style="color:var(--text-primary);">${d.ip}</code></div>
+          <div class="device-meta-row"><span>Status</span><span>${d.lastSeen}</span></div>
+        </div>
+
+        ${!compact ? `
+          <div class="drop-zone" style="margin-top:12px;"
+               ondragover="event.preventDefault();this.classList.add('drag-over')"
+               ondragleave="this.classList.remove('drag-over')"
+               ondrop="handleCardFileDrop(event, '${d.id}', this)"
+               onclick="handleDropZoneClick('${d.id}')">
+            Drop files here or click to send
+          </div>
+        ` : ''}
+      </div>
+
+      <div style="display:flex;gap:7px;padding-top:10px;border-top:1px solid var(--border-subtle);">
+        ${d.status === 'online' && d.trusted ? `<button class="btn btn-primary btn-sm" style="flex:1;" onclick="openSendFilesModal('${d.id}')">Send Files</button>` : ''}
+        ${d.status === 'online' && !d.trusted ? `<button class="btn btn-primary btn-sm" style="flex:1;" onclick="openPairingModal('${d.id}')">Pair Device</button>` : ''}
+        <button class="btn btn-sm" onclick="showToast('Endpoints Probed', '${d.name} responds with <0.2ms latency.')">Ping</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderDevicesPage() {
+  document.getElementById('navDevicesCount').textContent = state.devices.length;
+  const filtered = state.devices.filter(d => {
+    if (currentDeviceFilter === 'online') return d.status === 'online';
+    if (currentDeviceFilter === 'trusted') return d.trusted;
+    if (currentDeviceFilter === 'untrusted') return !d.trusted;
+    if (currentDeviceFilter === 'offline') return d.status !== 'online';
+    return true;
+  });
+  document.getElementById('devicesPageGrid').innerHTML = filtered.map(d => buildDeviceCardHTML(d, false)).join('');
+}
+
+function setDeviceFilter(filter, btn) {
+  currentDeviceFilter = filter;
+  document.querySelectorAll('#deviceFilterTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderDevicesPage();
+}
+
+function triggerDeviceRescan() {
+  playBallisticSound('salvo');
+  showToast('Rescanning Subnets', 'Broadcast ping sent over 192.168.10.0/24 & 192.168.20.0/24...');
+}
+
+function handleSampleChipDragStart(e) {
+  e.dataTransfer.setData('text/plain', 'Studio_Master_4K_Build.zip');
+}
+
+function handleCardFileDrop(e, deviceId, el) {
+  e.preventDefault();
+  el.classList.remove('drag-over');
+  sendWizard.destinationDeviceId = deviceId;
+  sendWizard.step = 3;
+  openModal('sendFilesModal');
+  renderSendWizardStep();
+  playBallisticSound('salvo');
+  showToast('Payload Staged', 'Review ballistic transfer parameters.');
+}
+
+function handleDropZoneClick(deviceId) {
+  sendWizard.destinationDeviceId = deviceId;
+  sendWizard.step = 3;
+  openModal('sendFilesModal');
+  renderSendWizardStep();
+}
+
+function renderTransfersPage() {
+  const activeCount = state.transfers.filter(t => t.status === 'active').length;
+  document.getElementById('navTransfersCount').textContent = `${activeCount}`;
+  renderChunkMatrix();
+
+  const container = document.getElementById('transfersListContainer');
+  const filtered = state.transfers.filter(t => currentTransferFilter === 'all' ? true : t.status === currentTransferFilter);
+
+  container.innerHTML = filtered.map(t => `
+    <div style="padding:14px 16px;border-radius:var(--radius-sm);background:var(--bg-surface-elevated);border:1px solid var(--border-subtle);display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <strong style="font-size:14px;">${t.name}</strong>
+            <span class="badge ${t.status === 'active' ? 'badge-success' : 'badge-neutral'}">${t.status.toUpperCase()}</span>
+            <span class="badge badge-neutral">${t.direction} • ${t.peer}</span>
+          </div>
+          <div style="font-size:11.5px;color:var(--text-secondary);margin-top:4px;font-family:var(--font-mono);">
+            ${t.totalSizeGB.toFixed(2)} GB • Cur: <strong>${t.currentSpeedMBs} MB/s</strong> • Avg: ${t.avgSpeedMBs} MB/s • Peak: ${t.peakSpeedMBs} MB/s
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          ${t.status === 'active' ? `<button class="btn btn-sm" onclick="pauseTransfer('${t.id}')">Pause</button>` : ''}
+          ${t.status === 'paused' || t.status === 'queued' ? `<button class="btn btn-sm btn-primary" onclick="resumeTransfer('${t.id}')">Resume</button>` : ''}
+          <button class="btn btn-sm btn-danger" onclick="cancelTransfer('${t.id}')">Cancel</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="progress-track" style="flex:1;">
+          <div class="progress-fill" style="width:${t.progressPct}%;"></div>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:11.5px;min-width:48px;text-align:right;">${t.progressPct.toFixed(1)}%</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function setTransferFilter(filter, btn) {
+  currentTransferFilter = filter;
+  document.querySelectorAll('#transferFilterTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTransfersPage();
+}
+
+function pauseTransfer(id) {
+  const t = state.transfers.find(x => x.id === id);
+  if (t) { t.status = 'paused'; t.currentSpeedMBs = 0; saveState(); renderTransfersPage(); }
+}
+function resumeTransfer(id) {
+  const t = state.transfers.find(x => x.id === id);
+  if (t) { t.status = 'active'; t.currentSpeedMBs = getCombinedSimulatedSpeed(); saveState(); renderTransfersPage(); }
+}
+function cancelTransfer(id) {
+  state.transfers = state.transfers.filter(x => x.id !== id);
+  saveState();
+  renderTransfersPage();
+  showToast('Canceled', 'Job removed from queue.');
+}
+function pauseAllTransfers() {
+  state.transfers.forEach(t => { if (t.status === 'active') { t.status = 'paused'; t.currentSpeedMBs = 0; } });
+  saveState(); refreshEntireUI();
+}
+function resumeAllTransfers() {
+  state.transfers.forEach(t => { if (t.status === 'paused') { t.status = 'active'; t.currentSpeedMBs = getCombinedSimulatedSpeed(); } });
+  saveState(); refreshEntireUI();
+}
+
+function simulateAdapterToggle() {
+  const usb = state.adapters.find(a => a.id === 'eth-usb32');
+  const btn = document.getElementById('btnSimDisconnect');
+  if (usb.status === 'connected') {
+    usb.status = 'disconnected';
+    redistributedChunksActive = true;
+    if (btn) btn.textContent = 'Reconnect USB 3.2';
+    playBallisticSound('alert');
+    showToast('Adapter Disconnected — Failover', 'USB 3.2 dropped. Unfinished chunks reassigned to Intel GbE.');
+  } else {
+    usb.status = 'connected';
+    redistributedChunksActive = false;
+    if (btn) btn.textContent = 'Disconnect USB 3.2';
+    playBallisticSound('salvo');
+    showToast('Adapter Restored', 'USB 3.2 rejoined multi-link pool at 2.5 Gbps.');
+  }
+  saveState();
+  refreshEntireUI();
+}
+
+function triggerVerificationDemo() {
+  const job = state.transfers[0];
+  if (!job) return;
+  job.progressPct = 99.5;
+  job.lifecycle = 'reassembling';
+  renderTransfersPage();
+  playBallisticSound('impact');
+
+  setTimeout(() => {
+    job.progressPct = 100;
+    job.lifecycle = 'verifying';
+    renderTransfersPage();
+  }, 1200);
+
+  setTimeout(() => {
+    job.lifecycle = 'completed';
+    job.status = 'completed';
+    job.currentSpeedMBs = 0;
+    playBallisticSound('verified');
+    saveState();
+    refreshEntireUI();
+    showToast('SHA-256 Passed', 'Payload verified cryptographically and completed.');
+  }, 2600);
+}
+
+function simulateVerificationFailureDemo() {
+  const job = state.transfers[0];
+  if (!job) return;
+  job.lifecycle = 'failed';
+  job.status = 'failed';
+  job.currentSpeedMBs = 0;
+  playBallisticSound('alert');
+  saveState();
+  renderTransfersPage();
+  showToast('Integrity Error', 'Corrupted block at chunk #518. Checksum verification failed.');
+}
+
+function renderHistoryPage() {
+  const card = document.getElementById('historyTableCard');
+  if (state.emptyHistoryDemo) {
+    card.innerHTML = `<div style="text-align:center;padding:48px 20px;"><h3>Transfer Audit History is Empty</h3></div>`;
+    return;
+  }
+  card.innerHTML = `
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Payload</th>
+          <th>Peer</th>
+          <th>Timestamp</th>
+          <th class="num-col">Size</th>
+          <th class="num-col">Duration</th>
+          <th class="num-col">Avg Speed</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${state.history.map(h => `
+          <tr>
+            <td>
+              <div style="font-weight:600;">${h.name}</div>
+              <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);">SHA-256: ${h.hash.slice(0, 32)}...</div>
+            </td>
+            <td>${h.peer}</td>
+            <td>${h.timestamp}</td>
+            <td class="num-col">${h.size}</td>
+            <td class="num-col">${h.duration}</td>
+            <td class="num-col">${h.avgSpeed}</td>
+            <td><span class="badge ${h.result === 'completed' ? 'badge-success' : 'badge-danger'}">${h.result === 'completed' ? '✓ Verified' : '✕ Failed'}</span></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+function toggleEmptyHistoryDemo() {
+  state.emptyHistoryDemo = !state.emptyHistoryDemo;
+  renderHistoryPage();
+}
+
+function renderSettingsPage() {
+  document.getElementById('setCloseBehavior').value = state.closeBehavior;
+  document.getElementById('setDefaultFolder').value = state.defaultFolder;
+  document.getElementById('setThemeSelect').value = state.theme;
+  document.getElementById('setTrajectorySelect').value = state.trajectoryMode;
+  document.getElementById('setReducedMotion').checked = state.reducedMotion;
+  document.getElementById('setAudioFx').checked = state.audioFx;
+  document.getElementById('setTransferMode').value = state.transferMode;
+  document.getElementById('setMaxConcurrent').value = state.maxConcurrent;
+  document.getElementById('setMultiLinkEnabled').checked = state.multiLinkEnabled;
+
+  document.getElementById('settingsAdaptersList').innerHTML = state.adapters.map(a => `
+    <div style="padding:10px 12px;border-radius:var(--radius-sm);background:var(--bg-surface-elevated);border:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-weight:600;">${a.name} — <span style="font-family:var(--font-mono);">${a.linkSpeed}</span></div>
+        <div style="font-size:11.5px;color:var(--text-secondary);">${a.chipset} • ${a.subnet}</div>
+      </div>
+      <span class="badge ${a.usableIndependentPath ? 'badge-success' : 'badge-neutral'}">${a.usableIndependentPath ? 'Independent Path' : 'Shared Switch'}</span>
+    </div>
+  `).join('');
+}
+
+function switchSettingsTab(tabId, btn) {
+  document.querySelectorAll('.settings-panel').forEach(p => p.style.display = 'none');
+  const target = document.getElementById('stab-' + tabId);
+  if (target) target.style.display = 'block';
+  document.querySelectorAll('.settings-subnav .nav-item').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function saveSettingsFromUI() {
+  state.closeBehavior = document.getElementById('setCloseBehavior').value;
+  state.defaultFolder = document.getElementById('setDefaultFolder').value;
+  saveState();
+}
+
+function validateAndSaveConcurrent(input) {
+  let v = parseInt(input.value, 10);
+  if (isNaN(v) || v < 1) v = 1;
+  if (v > 16) v = 16;
+  input.value = v;
+  state.maxConcurrent = v;
+  saveState();
+  refreshEntireUI();
+}
+
+function toggleMultiLinkMaster(enabled) {
+  state.multiLinkEnabled = enabled;
+  saveState();
+  refreshEntireUI();
+}
+
+function updateTransferModeSetting(val) {
+  state.transferMode = val;
+  saveState();
+  refreshEntireUI();
+}
+
+/* Modals & Wizards */
+function openModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.add('open');
+  playBallisticSound('impact');
+}
+function closeModal(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.remove('open');
+}
+
+function openSendFilesModal(deviceId) {
+  if (deviceId) {
+    sendWizard.destinationDeviceId = deviceId;
+    sendWizard.step = 2;
+  } else {
+    sendWizard.step = 1;
+  }
+  openModal('sendFilesModal');
+  renderSendWizardStep();
+}
+
+function renderSendWizardStep() {
+  for (let i = 1; i <= 3; i++) {
+    const tab = document.getElementById('sendStepTab' + i);
+    tab.className = 'lifecycle-step' + (sendWizard.step === i ? ' active' : (sendWizard.step > i ? ' done' : ''));
+  }
+  const body = document.getElementById('sendWizardBody');
+  const footer = document.getElementById('sendWizardFooter');
+
+  if (sendWizard.step === 1) {
+    const onlineTrusted = state.devices.filter(d => d.trusted && d.status === 'online');
+    body.innerHTML = `
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">Select online destination computer:</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${onlineTrusted.map(d => `
+          <div onclick="sendWizard.destinationDeviceId='${d.id}';renderSendWizardStep()"
+               style="padding:12px;border-radius:var(--radius-sm);cursor:pointer;background:var(--bg-surface-elevated);border:1px solid ${sendWizard.destinationDeviceId === d.id ? 'var(--text-primary)' : 'var(--border-subtle)'};display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-weight:600;font-family:var(--font-mono);">${d.name}</div>
+              <div style="font-size:11.5px;color:var(--text-secondary);">${d.ip}</div>
+            </div>
+            <span class="badge ${sendWizard.destinationDeviceId === d.id ? 'badge-success' : 'badge-neutral'}">${sendWizard.destinationDeviceId === d.id ? 'Selected' : 'Select'}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    footer.innerHTML = `
+      <button class="btn" onclick="closeModal('sendFilesModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="sendWizard.step=2;renderSendWizardStep()">Next: Payload →</button>
+    `;
+  } else if (sendWizard.step === 2) {
+    body.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <span style="font-size:13px;color:var(--text-secondary);">Selected Payload Items (${sendWizard.files.length}):</span>
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('hiddenBrowserFileInput').click()">Browse Files...</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;max-height:220px;overflow-y:auto;">
+        ${sendWizard.files.map((f, i) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:var(--radius-xs);background:var(--bg-surface-elevated);border:1px solid var(--border-subtle);font-size:12px;">
+            <span>${f.name}</span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <span style="font-family:var(--font-mono);">${f.sizeGB} GB</span>
+              <button class="btn btn-sm" onclick="sendWizard.files.splice(${i},1);renderSendWizardStep()">✕</button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    footer.innerHTML = `
+      <button class="btn" onclick="sendWizard.step=1;renderSendWizardStep()">← Back</button>
+      <button class="btn btn-primary" onclick="sendWizard.step=3;renderSendWizardStep()">Next: Launch →</button>
+    `;
+  } else {
+    const dest = state.devices.find(d => d.id === sendWizard.destinationDeviceId) || state.devices[0];
+    body.innerHTML = `
+      <div class="device-meta-list" style="margin-bottom:12px;">
+        <div class="device-meta-row"><span>Target</span><strong>${dest.name} (${dest.ip})</strong></div>
+        <div class="device-meta-row"><span>Payload</span><strong>${sendWizard.files.length} items (${sendWizard.files.reduce((s,f)=>s+f.sizeGB,0).toFixed(2)} GB)</strong></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <label style="font-size:11.5px;color:var(--text-secondary);">Remote Destination Path</label>
+          <input type="text" class="input-control" style="width:100%;font-family:var(--font-mono);margin-top:3px;" value="${sendWizard.destinationFolder}">
+        </div>
+      </div>
+    `;
+    footer.innerHTML = `
+      <button class="btn" onclick="sendWizard.step=2;renderSendWizardStep()">← Back</button>
+      <button class="btn btn-primary" onclick="launchTransferFromWizard()">Launch Ballistic Transfer</button>
+    `;
+  }
+}
+
+function handleRealFileInputPicked(e) {
+  if (!e.target.files) return;
+  Array.from(e.target.files).forEach(f => {
+    sendWizard.files.push({
+      name: f.name,
+      sizeGB: Math.max(0.05, +(f.size / (1024 * 1024 * 1024)).toFixed(2)),
+      type: 'file'
+    });
+  });
+  renderSendWizardStep();
+}
+
+function launchTransferFromWizard() {
+  const dest = state.devices.find(d => d.id === sendWizard.destinationDeviceId) || state.devices[0];
+  const total = +sendWizard.files.reduce((s, f) => s + f.sizeGB, 0).toFixed(2);
+  state.transfers.unshift({
+    id: 'tr-' + Math.floor(100 + Math.random() * 900),
+    name: sendWizard.files[0]?.name || 'Payload.zip',
+    peer: dest.name,
+    direction: 'Sending',
+    fileCount: sendWizard.files.length,
+    totalSizeGB: total,
+    progressPct: 0,
+    currentSpeedMBs: getCombinedSimulatedSpeed(),
+    avgSpeedMBs: getCombinedSimulatedSpeed(),
+    peakSpeedMBs: getCombinedSimulatedSpeed() + 18,
+    status: 'active',
+    lifecycle: 'receiving',
+    priority: 'High',
+    sessionMode: 'Multi-Transfer',
+    multiLink: true
+  });
+  saveState();
+  closeModal('sendFilesModal');
+  refreshEntireUI();
+  navigateTo('transfers');
+  triggerBallisticBurst();
+}
+
+function openPairingModal(devId) {
+  const dev = state.devices.find(d => d.id === devId) || state.devices[2];
+  document.getElementById('pairingModalBody').innerHTML = `
+    <div style="background:var(--bg-surface-elevated);padding:16px;border-radius:var(--radius-sm);border:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:11px;color:var(--text-secondary);">LOCAL HOST</div>
+        <div style="font-weight:600;font-family:var(--font-mono);">WORKSTATION-PRO</div>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;padding:6px 14px;border-radius:var(--radius-xs);background:var(--btn-primary-bg);color:var(--btn-primary-text);">
+        PIN: 749-204
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:var(--text-secondary);">REMOTE HOST</div>
+        <div style="font-weight:600;font-family:var(--font-mono);">${dev.name}</div>
+      </div>
+    </div>
+  `;
+  openModal('pairingModal');
+}
+
+function confirmDevicePairing() {
+  const laptop = state.devices.find(d => d.id === 'dev-laptop');
+  if (laptop) laptop.trusted = true;
+  saveState();
+  closeModal('pairingModal');
+  refreshEntireUI();
+  playBallisticSound('verified');
+  showToast('Paired & Verified', 'Device added to trusted cryptographic pool.');
+}
+
+function openIncomingModal(scenario) {
+  openModal('incomingModal');
+  renderIncomingScenario(scenario);
+}
+
+function renderIncomingScenario(scenario) {
+  document.getElementById('incTabTrusted').classList.toggle('active', scenario === 'trusted');
+  document.getElementById('incTabUnknown').classList.toggle('active', scenario === 'unknown');
+  document.getElementById('incTabExpired').classList.toggle('active', scenario === 'expired');
+
+  const body = document.getElementById('incomingModalBody');
+  const footer = document.getElementById('incomingModalFooter');
+
+  if (scenario === 'trusted') {
+    body.innerHTML = `
+      <div class="device-meta-list">
+        <div class="device-meta-row"><span>Sender</span><strong>DESKTOP-STUDIO (192.168.10.22)</strong></div>
+        <div class="device-meta-row"><span>Identity</span><code>Verified Ed25519</code></div>
+        <div class="device-meta-row"><span>Payload</span><strong>15 Files (6.80 GB Total)</strong></div>
+      </div>
+    `;
+    footer.innerHTML = `
+      <button class="btn" onclick="closeModal('incomingModal')">Decline</button>
+      <button class="btn btn-primary" onclick="closeModal('incomingModal');triggerBallisticBurst();showToast('Accepted','Receiving files from DESKTOP-STUDIO.')">Accept & Receive</button>
+    `;
+  } else if (scenario === 'unknown') {
+    body.innerHTML = `
+      <div style="padding:12px;background:var(--bg-surface-elevated);border:1px dashed var(--text-primary);border-radius:var(--radius-sm);font-size:12px;">
+        <strong>Untrusted Sender Blocked:</strong> LAPTOP-WORK is unverified. Pair device first before approving transfers.
+      </div>
+    `;
+    footer.innerHTML = `
+      <button class="btn" onclick="closeModal('incomingModal')">Decline</button>
+      <button class="btn btn-primary" onclick="closeModal('incomingModal');openPairingModal('dev-laptop')">Pair LAPTOP-WORK First</button>
+    `;
+  } else {
+    body.innerHTML = `
+      <div style="padding:12px;background:var(--bg-surface-elevated);border:1px dashed var(--text-secondary);border-radius:var(--radius-sm);font-size:12px;">
+        <strong>Request Timed Out:</strong> Incoming transfer from GAMING-PC expired after 120 seconds.
+      </div>
+    `;
+    footer.innerHTML = `<button class="btn btn-primary" onclick="closeModal('incomingModal')">Dismiss</button>`;
+  }
+}
+
+function openStateSimModal() {
+  openModal('stateSimModal');
+}
+
+function applySystemErrorState(type) {
+  state.systemErrorState = type;
+  closeModal('stateSimModal');
+  refreshEntireUI();
+  playBallisticSound('alert');
+  showToast('State Applied', `Simulating system state: ${type.toUpperCase()}`);
+}
+
+function minimizeToTray() {
+  document.getElementById('appWindow').classList.add('minimized-to-tray');
+  document.getElementById('minimizedRestoreBar').classList.add('visible');
+  showToast('Minimized', 'EtherConnectedBallisticFiles running in Windows Tray.');
+}
+function restoreFromTray() {
+  document.getElementById('appWindow').classList.remove('minimized-to-tray');
+  document.getElementById('minimizedRestoreBar').classList.remove('visible');
+}
+function toggleMaximizeWindow() {
+  document.getElementById('appWindow').classList.toggle('maximized');
+  setTimeout(resizeCanvases, 100);
+}
+function handleWindowCloseClick() {
+  if (state.closeBehavior === 'tray') minimizeToTray();
+  else showToast('Exit Simulated', 'Application would terminate.');
+}
+function toggleTrayFlyout(force) {
+  const fly = document.getElementById('trayFlyout');
+  const open = typeof force === 'boolean' ? force : !fly.classList.contains('open');
+  fly.classList.toggle('open', open);
+}
+
+function showToast(title, msg) {
+  const stack = document.getElementById('toastStack');
+  const toast = document.createElement('div');
+  toast.className = 'toast-item';
+  toast.innerHTML = `
+    <div>
+      <div style="font-weight:600;font-size:12.5px;margin-bottom:2px;">${title}</div>
+      <div style="font-size:11.5px;color:var(--text-secondary);">${msg}</div>
+    </div>
+    <button class="btn btn-sm" onclick="this.parentElement.remove()">✕</button>
+  `;
+  stack.appendChild(toast);
+  setTimeout(() => toast.remove(), 4500);
+}
+
+function refreshEntireUI() {
+  renderSidebar();
+  renderHomePage();
+  renderDevicesPage();
+  renderTransfersPage();
+  renderHistoryPage();
+  renderSettingsPage();
+}
+
+window.onload = function () {
+  applyThemeSetting(state.theme);
+  setTrajectoryMode(state.trajectoryMode);
+  toggleAudioFx(state.audioFx);
+  initBallisticParticles();
+  resizeCanvases();
+  refreshEntireUI();
+  animationLoop();
+  window.addEventListener('resize', resizeCanvases);
+};
+</script>
+</body>
+</html>
