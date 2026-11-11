@@ -7,6 +7,29 @@ const CURRENT_VERSION: &str = "0.1.0";
 const GITHUB_REPO: &str = "voiceline-diskrep/EtherConnectedBallisticFiles";
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct WiredCableInfo {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub port_type: String,
+    pub link_speed_mbps: u64,
+    pub link_speed_display: String,
+    pub is_connected: bool,
+    pub ip_address: Option<String>,
+    pub mac_address: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct BondedNetworkStatus {
+    pub cables: Vec<WiredCableInfo>,
+    pub total_connected_cables: usize,
+    pub total_bonded_speed_mbps: u64,
+    pub total_bonded_speed_display: String,
+    pub max_theoretical_transfer_rate_mbs: f64,
+    pub local_device_name: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct NetworkAdapterInfo {
     pub id: String,
     pub name: String,
@@ -41,6 +64,98 @@ pub struct UpdateCheckResponse {
     pub release_date: Option<String>,
     pub release_notes: Option<String>,
     pub has_update: bool,
+}
+
+#[tauri::command]
+fn get_bonded_network_status() -> BondedNetworkStatus {
+    let dev_name = get_device_name();
+    let mut cables: Vec<WiredCableInfo> = Vec::new();
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::process::Command;
+        use std::os::windows::process::CommandExt;
+
+        let ps_script = r#"
+            $adapters = Get-NetAdapter | Where-Object { 
+                $_.PhysicalMediaType -ne "Native 802.11" -and 
+                $_.InterfaceDescription -notlike "*TunnelBear*" -and 
+                $_.InterfaceDescription -notlike "*Bluetooth*" -and
+                $_.InterfaceDescription -notlike "*Virtual*" -and
+                $_.InterfaceDescription -notlike "*TAP*"
+            } | ForEach-Object {
+                $desc = $_.InterfaceDescription
+                $port = "Built-in Ethernet"
+                if ($desc -like "*USB*C*" -or $desc -like "*Type-C*" -or $desc -like "*2.5G*") { $port = "USB-C Adapter" }
+                elseif ($desc -like "*USB*") { $port = "USB-A Adapter" }
+                elseif ($desc -like "*PCI*" -or $desc -like "*Intel*" -or $desc -like "*Realtek*") { $port = "Built-in Ethernet" }
+
+                $speedMbps = 0
+                if ($_.LinkSpeed -match "(\d+(\.\d+)?)\s*(Gbps|Mbps)") {
+                    $val = [double]$matches[1]
+                    $unit = $matches[3]
+                    if ($unit -eq "Gbps") { $speedMbps = [long]($val * 1000) } else { $speedMbps = [long]$val }
+                }
+
+                $ip = (Get-NetIPAddress -InterfaceIndex $_.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue | Select-Object -ExpandProperty IPAddress -First 1)
+
+                [PSCustomObject]@{
+                    id = $_.Name
+                    name = $_.Name
+                    description = $_.InterfaceDescription
+                    port_type = $port
+                    link_speed_mbps = $speedMbps
+                    link_speed_display = $_.LinkSpeed
+                    is_connected = ($_.Status -eq "Up")
+                    ip_address = $ip
+                    mac_address = $_.MacAddress
+                }
+            }
+            if ($adapters) { $adapters | ConvertTo-Json -Compress } else { "[]" }
+        "#;
+
+        const CREATE_NO_WINDOW: u32 = 0x08000000;
+        if let Ok(output) = Command::new("powershell")
+            .creation_flags(CREATE_NO_WINDOW)
+            .args(&["-NoProfile", "-NonInteractive", "-Command", ps_script])
+            .output()
+        {
+            if output.status.success() {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                let trimmed = stdout.trim();
+                if trimmed.starts_with('{') {
+                    if let Ok(single) = serde_json::from_str::<WiredCableInfo>(trimmed) {
+                        cables.push(single);
+                    }
+                } else if trimmed.starts_with('[') {
+                    if let Ok(list) = serde_json::from_str::<Vec<WiredCableInfo>>(trimmed) {
+                        cables = list;
+                    }
+                }
+            }
+        }
+    }
+
+    let connected_cables: Vec<&WiredCableInfo> = cables.iter().filter(|c| c.is_connected).collect();
+    let total_connected = connected_cables.len();
+    let total_speed: u64 = connected_cables.iter().map(|c| c.link_speed_mbps).sum();
+
+    let display = if total_speed >= 1000 {
+        format!("{:.1} Gbps", (total_speed as f64) / 1000.0)
+    } else {
+        format!("{} Mbps", total_speed)
+    };
+
+    let max_rate_mbs = (total_speed as f64) / 8.0 * 0.92;
+
+    BondedNetworkStatus {
+        cables,
+        total_connected_cables: total_connected,
+        total_bonded_speed_mbps: total_speed,
+        total_bonded_speed_display: display,
+        max_theoretical_transfer_rate_mbs: max_rate_mbs,
+        local_device_name: dev_name,
+    }
 }
 
 #[tauri::command]
@@ -218,6 +333,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_bonded_network_status,
             get_device_name,
             get_network_adapters,
             verify_file_hash,
