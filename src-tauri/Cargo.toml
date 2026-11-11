@@ -11,7 +11,7 @@ name = "ether_connected_ballistic_files_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.7.4" }
+tauri-build = { version = "2.7.4", features = [] }
 
 [dependencies]
 serde_json = "1.0"
@@ -22,3 +22,4 @@ tauri-plugin-log = "2"
 sha2 = "0.10"
 sysinfo = "0.33"
 tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }

@@ -18,7 +18,6 @@
   --font-sans: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', 'JetBrains Mono', 'SF Mono', Consolas, monospace;
 
-  /* Spring physics & transitions */
   --ease-ballistic: cubic-bezier(0.18, 1.25, 0.22, 1);
   --ease-hypersonic: cubic-bezier(0.16, 1, 0.3, 1);
   --trans-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -26,8 +25,6 @@
 
   --radius-xs: 2px;
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
 }
 
 * {
@@ -51,21 +48,17 @@ body {
   line-height: 1.5;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: var(--c-black); }
 ::-webkit-scrollbar-thumb { background: var(--c-darkgrey); border: 1px solid var(--c-white); }
 ::-webkit-scrollbar-thumb:hover { background: var(--c-white); }
 
-/* Focus Accessibility */
 button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focus-visible {
   outline: 2px solid var(--c-white);
   outline-offset: 2px;
 }
 
-/* ============================================================================
-   KINETIC ANIMATION KEYFRAMES (ZERO GRADIENTS - SOLID MOTION ONLY)
-   ============================================================================ */
+/* Kinetic Animation Keyframes (Zero Gradients) */
 @keyframes recoilPulse {
   0% { transform: scale(0.96) translateX(-3px); }
   50% { transform: scale(1.03) translateX(2px); }
@@ -90,20 +83,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   100% { transform: scale(1); }
 }
 
-@keyframes fileBlockFloat {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-  100% { transform: translateY(0); }
-}
-
 @keyframes popIn {
   0% { opacity: 0; transform: scale(0.94) translateY(8px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* ============================================================================
-   WINDOW SHELL & TITLEBAR (FRAMELESS TAURI INTEGRATION)
-   ============================================================================ */
+/* Window Shell */
 .app-window {
   width: 100vw;
   height: 100vh;
@@ -114,7 +99,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   position: relative;
 }
 
-/* Custom Drag Region Titlebar */
+/* Frameless Titlebar */
 .titlebar {
   height: 44px;
   display: flex;
@@ -218,6 +203,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border-radius: var(--radius-xs);
   cursor: pointer;
   transition: all var(--trans-fast);
+  font-family: var(--font-mono);
+  font-weight: 700;
 }
 .win-ctrl-btn:hover {
   background: var(--c-white);
@@ -229,9 +216,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   color: var(--c-black);
 }
 
-/* ============================================================================
-   SIDEBAR & LAYOUT
-   ============================================================================ */
+/* Sidebar & Layout */
 .app-body {
   display: flex;
   flex: 1;
@@ -356,13 +341,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   display: inline-block;
   border: 1px solid var(--c-white);
 }
-.eth-dot.warn {
-  background: var(--c-darkgrey);
-}
-.eth-dot.error {
-  background: transparent;
-  border: 1.5px dashed var(--c-white);
-}
+.eth-dot.warn { background: var(--c-darkgrey); }
+.eth-dot.error { background: transparent; border: 1.5px dashed var(--c-white); }
 .eth-adapter-mini-list {
   display: flex;
   flex-direction: column;
@@ -379,9 +359,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   font-family: var(--font-mono);
 }
 
-/* ============================================================================
-   MAIN CONTENT & 3-COLOR CARDS
-   ============================================================================ */
+/* Main Content */
 .main-content {
   flex: 1;
   overflow-y: auto;
@@ -598,9 +576,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   color: var(--c-black);
 }
 
-/* ============================================================================
-   PHASE 3: IN-FLIGHT FILE TRANSFER & DUAL-STAGE PARTICLE ANIMATIONS
-   ============================================================================ */
+/* In-Flight File Payload Transfer Animation */
 .visualizer-stage {
   background: var(--c-darkgrey);
   border: 1px solid var(--c-white);
@@ -611,7 +587,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   overflow: hidden;
 }
 
-/* In-Flight File Payload Transfer Animation Stage */
 .file-payload-stage {
   background: var(--c-black);
   border: 1px solid var(--c-white);
@@ -626,7 +601,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11.5px;
+  font-size: 11px;
   font-family: var(--font-mono);
 }
 .file-transfer-corridor {
@@ -646,12 +621,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   align-items: center;
   gap: 4px;
 }
-.file-pod.active-pulse {
-  animation: recoilPulse 400ms var(--ease-ballistic);
-}
-.file-pod.target-strike {
-  animation: impactShockwave 400ms var(--ease-ballistic);
-}
+.file-pod.active-pulse { animation: recoilPulse 400ms var(--ease-ballistic); }
+.file-pod.target-strike { animation: impactShockwave 400ms var(--ease-ballistic); }
 .file-pod-name {
   font-size: 11px;
   font-weight: 700;
@@ -666,7 +637,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   opacity: 0.7;
 }
 
-/* Flying Blocks Lane */
 .in-flight-blocks-zone {
   height: 64px;
   background: var(--c-black);
@@ -693,7 +663,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   white-space: nowrap;
 }
 
-/* Nodes Row & Particle Canvas */
 .visualizer-nodes-row {
   display: grid;
   grid-template-columns: 180px 1fr 180px;
@@ -713,9 +682,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   gap: 5px;
   transition: transform var(--ease-ballistic) 200ms;
 }
-.endpoint-node.firing {
-  animation: recoilPulse 300ms var(--ease-ballistic);
-}
+.endpoint-node.firing { animation: recoilPulse 300ms var(--ease-ballistic); }
 .endpoint-name {
   font-size: 12px;
   font-weight: 700;
@@ -742,7 +709,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border: 1px solid var(--c-white);
 }
 
-/* Chunk Matrix */
 .chunk-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(46px, 1fr));
@@ -761,13 +727,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   color: var(--c-white);
   transition: transform 140ms;
 }
-.chunk-cell:hover {
-  transform: scale(1.12);
-  z-index: 2;
-}
-.chunk-cell.flashing {
-  animation: chunkFlash 350ms ease-out;
-}
+.chunk-cell:hover { transform: scale(1.12); z-index: 2; }
+.chunk-cell.flashing { animation: chunkFlash 350ms ease-out; }
 .chunk-cell.path-1 {
   background: var(--c-white);
   color: var(--c-black);
@@ -784,7 +745,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   animation: beaconFlash 1.6s infinite;
 }
 
-/* Stepper */
 .lifecycle-stepper {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -802,7 +762,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   font-size: 11px;
   font-weight: 600;
   color: var(--c-white);
-  opacity: 0.6;
+  opacity: 0.55;
+  transition: all var(--trans-fast);
 }
 .lifecycle-step.active {
   border-color: var(--c-white);
@@ -819,7 +780,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   opacity: 1;
 }
 
-/* Progress Bar (Solid Flat Geometry) */
 .progress-track {
   width: 100%;
   height: 6px;
@@ -891,7 +851,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   color: var(--c-black);
 }
 
-/* Draggable Sample Chip */
 .sample-drag-bar {
   display: flex;
   align-items: center;
@@ -987,7 +946,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border-color: var(--c-white);
 }
 
-/* Strict 3-Color Switch */
 .switch {
   position: relative;
   display: inline-block;
@@ -1016,15 +974,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, [tabindex]:focu
   border-radius: 50%;
   transition: 0.14s;
 }
-input:checked + .slider {
-  background-color: var(--c-white);
-}
-input:checked + .slider:before {
-  transform: translateX(16px);
-  background-color: var(--c-black);
-}
+input:checked + .slider { background-color: var(--c-white); }
+input:checked + .slider:before { transform: translateX(16px); background-color: var(--c-black); }
 
-/* Data Table */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -1054,7 +1006,6 @@ input:checked + .slider:before {
   background: var(--c-black);
 }
 
-/* Toast */
 .toast-stack {
   position: fixed;
   bottom: 20px;
@@ -1080,7 +1031,6 @@ input:checked + .slider:before {
   animation: popIn 180ms var(--ease-hypersonic);
 }
 
-/* Settings */
 .settings-layout { display: grid; grid-template-columns: 200px 1fr; gap: 20px; }
 .settings-subnav { display: flex; flex-direction: column; gap: 3px; }
 .settings-row {
@@ -1095,7 +1045,6 @@ input:checked + .slider:before {
 .settings-label-title { font-size: 13px; font-weight: 600; }
 .settings-label-desc { font-size: 11.5px; opacity: 0.7; margin-top: 2px; }
 
-/* System Tray Flyout */
 .tray-flyout {
   position: fixed;
   bottom: 20px;
@@ -1154,15 +1103,14 @@ input:checked + .slider:before {
 
 <div class="app-window" id="appWindow">
 
-  <!-- FRAMELESS DRAG TITLEBAR -->
+  <!-- TITLEBAR -->
   <header class="titlebar" data-tauri-drag-region>
     <div class="titlebar-brand" data-tauri-drag-region>
       <div class="app-logo-badge">ECB</div>
       <span>EtherConnectedBallisticFiles</span>
-      <span class="sim-pill">3-COLOR TAURI v2</span>
+      <span class="sim-pill">v0.1.0</span>
     </div>
 
-    <!-- Kinetic Simulation Action Bar -->
     <div class="titlebar-sim-bar">
       <button class="sim-btn highlight" onclick="fireKineticSalvo()" title="Fire Hypersonic File Payload Burst">
         ► SALVO BURST
@@ -1185,7 +1133,6 @@ input:checked + .slider:before {
       </button>
     </div>
 
-    <!-- Native Windows Caption Controls -->
     <div class="window-controls">
       <button class="win-ctrl-btn" onclick="appMinimize()" title="Minimize Window">_</button>
       <button class="win-ctrl-btn" onclick="appMaximize()" title="Maximize / Restore">□</button>
@@ -1195,7 +1142,7 @@ input:checked + .slider:before {
 
   <div class="app-body">
 
-    <!-- FIXED 240PX SIDEBAR -->
+    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div>
         <button class="sidebar-cta" onclick="openSendFilesModal()">
@@ -1261,7 +1208,7 @@ input:checked + .slider:before {
         <div class="page-header">
           <div>
             <h1 class="page-title">Workstation Multi-Link Overview</h1>
-            <p class="page-subtitle">Local Host: <strong>WORKSTATION-PRO</strong> (192.168.10.10) • Strict 3-Color Monochromatic Architecture</p>
+            <p class="page-subtitle">Host: <strong>WORKSTATION-PRO</strong> (192.168.10.10) • Solid 3-Color Monochromatic Architecture</p>
           </div>
           <div style="display:flex;gap:8px;">
             <button class="btn btn-primary" onclick="openSendFilesModal()">Send Files</button>
@@ -1293,7 +1240,6 @@ input:checked + .slider:before {
         </div>
 
         <div class="grid-2" style="margin-bottom:16px;">
-          <!-- Adapter Breakdown -->
           <div class="glass-card">
             <div class="glass-card-header">
               <div class="card-title">Aggregated Physical Adapters</div>
@@ -1301,27 +1247,20 @@ input:checked + .slider:before {
             </div>
             <div id="homeAdapterBars" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
 
-            <!-- SVG Topology (Solid Lines Only) -->
             <div style="background:var(--c-black);border:1px solid var(--c-white);padding:12px;border-radius:var(--radius-xs);">
               <svg width="100%" height="64" viewBox="0 0 500 64">
                 <rect x="4" y="14" width="90" height="36" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>
                 <text x="49" y="36" text-anchor="middle" fill="#FFFFFF" font-size="9" font-family="monospace" font-weight="700">WORKSTATION</text>
-
-                <!-- Ray 1 -->
                 <path d="M 94 22 L 406 22" stroke="#FFFFFF" stroke-width="2"/>
                 <text x="250" y="16" text-anchor="middle" fill="#FFFFFF" font-size="8.5" font-family="monospace">Path 1: USB 3.2 (2.5G) • 195 MB/s</text>
-
-                <!-- Ray 2 -->
                 <path d="M 94 42 L 406 42" stroke="#FFFFFF" stroke-width="1.2"/>
                 <text x="250" y="55" text-anchor="middle" fill="#FFFFFF" font-size="8.5" font-family="monospace">Path 2: Intel I225-V (1G) • 90 MB/s</text>
-
                 <rect x="406" y="14" width="90" height="36" fill="none" stroke="#FFFFFF" stroke-width="1.2"/>
                 <text x="451" y="36" text-anchor="middle" fill="#FFFFFF" font-size="9" font-family="monospace" font-weight="700">DESKTOP-STUDIO</text>
               </svg>
             </div>
           </div>
 
-          <!-- Recent Activity & Quick Actions -->
           <div class="glass-card" style="display:flex;flex-direction:column;justify-content:space-between;">
             <div>
               <div class="glass-card-header">
@@ -1331,16 +1270,15 @@ input:checked + .slider:before {
               <div id="homeRecentActivityList" style="display:flex;flex-direction:column;gap:6px;"></div>
             </div>
             <div style="padding-top:10px;border-top:1px solid var(--c-white);display:flex;justify-content:space-between;align-items:center;">
-              <span style="font-size:11px;font-family:var(--font-mono);">SIMULATION:</span>
+              <span style="font-size:11px;font-family:var(--font-mono);">ACTIONS:</span>
               <div style="display:flex;gap:6px;">
                 <button class="btn btn-sm btn-primary" onclick="fireKineticSalvo()">Fire Salvo Burst</button>
-                <button class="btn btn-sm" onclick="openIncomingModal('trusted')">Simulate Incoming</button>
+                <button class="btn btn-sm" onclick="openIncomingModal('trusted')">Incoming Request</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Discovered Computers Grid Preview -->
         <div class="glass-card">
           <div class="glass-card-header">
             <div class="card-title">Discovered Ethernet Peers</div>
@@ -1361,16 +1299,16 @@ input:checked + .slider:before {
           </div>
           <div style="display:flex;gap:8px;">
             <div class="tabs-bar" id="deviceFilterTabs">
-              <button class="tab-btn active" onclick="setDeviceFilter('all', this)">All (5)</button>
+              <button class="tab-btn active" onclick="setDeviceFilter('all', this)" id="btnDevFilterAll">All (5)</button>
               <button class="tab-btn" onclick="setDeviceFilter('online', this)">Online</button>
               <button class="tab-btn" onclick="setDeviceFilter('trusted', this)">Trusted</button>
               <button class="tab-btn" onclick="setDeviceFilter('untrusted', this)">Untrusted</button>
+              <button class="tab-btn" onclick="setDeviceFilter('offline', this)">Offline</button>
             </div>
             <button class="btn btn-sm" onclick="triggerDeviceRescan()">Rescan Subnets</button>
           </div>
         </div>
 
-        <!-- Sample Draggable Chip -->
         <div class="sample-drag-bar">
           <div style="display:flex;align-items:center;gap:8px;">
             <span class="badge badge-success">PAYLOAD STAGE</span>
@@ -1401,7 +1339,6 @@ input:checked + .slider:before {
           </div>
         </div>
 
-        <!-- DUAL-STAGE VISUALIZER -->
         <div class="visualizer-stage">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
             <div style="display:flex;align-items:center;gap:8px;">
@@ -1416,35 +1353,30 @@ input:checked + .slider:before {
             </div>
           </div>
 
-          <!-- 1. DEDICATED IN-FLIGHT FILE PAYLOAD TRANSFER ANIMATION -->
+          <!-- IN-FLIGHT FILE PAYLOAD CORRIDOR -->
           <div class="file-payload-stage">
             <div class="file-payload-header">
-              <span>IN-FLIGHT FILE PAYLOAD DISASSEMBLY & REASSEMBLY CORRIDOR</span>
+              <span>IN-FLIGHT FILE PAYLOAD CORRIDOR</span>
               <span id="fileBlockCounterText">In-Flight: 12 Blocks • 67.4% Reassembled</span>
             </div>
             <div class="file-transfer-corridor">
-              <!-- Sender File Source Pod -->
               <div class="file-pod" id="fileSenderPod">
                 <div class="file-pod-name" id="filePodSourceName">Project_Backup.zip</div>
-                <div class="file-pod-sub">12.5 GB • 142 Files</div>
+                <div class="file-pod-sub" id="filePodSourceSub">12.5 GB • 142 Files</div>
                 <span class="badge badge-success" style="font-size:9px;margin-top:2px;">SENDER POD</span>
               </div>
 
-              <!-- Animated Corridor with Flying File Blocks -->
-              <div class="in-flight-blocks-zone" id="inFlightBlocksZone">
-                <!-- Dynamically populated moving payload blocks -->
-              </div>
+              <div class="in-flight-blocks-zone" id="inFlightBlocksZone"></div>
 
-              <!-- Receiver File Destination Pod -->
               <div class="file-pod" id="fileReceiverPod">
-                <div class="file-pod-name">DESKTOP-STUDIO</div>
+                <div class="file-pod-name" id="filePodReceiverName">DESKTOP-STUDIO</div>
                 <div class="file-pod-sub" id="filePodReceivedSub">8.42 GB Reassembled</div>
                 <span class="badge badge-info" style="font-size:9px;margin-top:2px;">RECEIVER POD</span>
               </div>
             </div>
           </div>
 
-          <!-- 2. PARTICLE ACCELERATOR CANVAS & NODES -->
+          <!-- PARTICLE CANVAS -->
           <div class="visualizer-nodes-row">
             <div class="endpoint-node" id="nodeSender">
               <div class="endpoint-name">WORKSTATION-PRO</div>
@@ -1461,16 +1393,15 @@ input:checked + .slider:before {
             </div>
           </div>
 
-          <!-- Integrity Lifecycle Stepper -->
+          <!-- Stepper -->
           <div class="lifecycle-stepper" id="verificationStepper">
-            <div class="lifecycle-step active" data-step="receiving">1. Receiving Chunks</div>
-            <div class="lifecycle-step" data-step="reassembling">2. Reassembling Blocks</div>
-            <div class="lifecycle-step" data-step="verifying">3. SHA-256 Digest</div>
-            <div class="lifecycle-step" data-step="completed">4. Verified & Complete</div>
+            <div class="lifecycle-step active" id="step-receiving">1. Receiving Chunks</div>
+            <div class="lifecycle-step" id="step-reassembling">2. Reassembling Blocks</div>
+            <div class="lifecycle-step" id="step-verifying">3. SHA-256 Digest</div>
+            <div class="lifecycle-step" id="step-completed">4. Verified & Complete</div>
           </div>
         </div>
 
-        <!-- LIVE SPEED GRAPH + CHUNK MATRIX -->
         <div class="grid-2" style="margin-bottom:16px;">
           <!-- Speed Graph -->
           <div class="glass-card">
@@ -1502,10 +1433,20 @@ input:checked + .slider:before {
           </div>
         </div>
 
-        <!-- Transfer Queue List -->
+        <!-- Filterable Transfer Queue List -->
         <div class="glass-card">
-          <div class="glass-card-header">
-            <div class="card-title">Transfer Queue</div>
+          <div class="glass-card-header" style="flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <span class="card-title">Transfer Queue</span>
+              <div class="tabs-bar" id="transferFilterTabs">
+                <button class="tab-btn active" onclick="setTransferFilter('all', this)">All</button>
+                <button class="tab-btn" onclick="setTransferFilter('active', this)">Active</button>
+                <button class="tab-btn" onclick="setTransferFilter('queued', this)">Queued</button>
+                <button class="tab-btn" onclick="setTransferFilter('paused', this)">Paused</button>
+                <button class="tab-btn" onclick="setTransferFilter('completed', this)">Completed</button>
+                <button class="tab-btn" onclick="setTransferFilter('failed', this)">Failed</button>
+              </div>
+            </div>
             <div style="display:flex;gap:6px;">
               <button class="btn btn-sm" onclick="pauseAllTransfers()">Pause All</button>
               <button class="btn btn-sm" onclick="resumeAllTransfers()">Resume All</button>
@@ -1530,27 +1471,50 @@ input:checked + .slider:before {
       </section>
 
       <!-- ====================================================================
-           PAGE 5: SETTINGS
+           PAGE 5: SETTINGS & GITHUB UPDATE DETECTOR
            ==================================================================== -->
       <section class="page-view" id="page-settings">
         <div class="page-header">
           <div>
             <h1 class="page-title">Application Settings</h1>
-            <p class="page-subtitle">Strict 3-Color Monochromatic Configuration</p>
+            <p class="page-subtitle">Strict 3-Color Monochromatic Configuration & GitHub Release Updates</p>
           </div>
           <button class="btn btn-danger btn-sm" onclick="resetPrototypeState()">Reset Prototype State</button>
         </div>
 
         <div class="settings-layout">
           <div class="glass-card settings-subnav" style="height:fit-content;padding:8px;">
-            <button class="nav-item active" data-stab="general" onclick="switchSettingsTab('general', this)">General & Tray</button>
+            <button class="nav-item active" data-stab="general" onclick="switchSettingsTab('general', this)">General & Updates</button>
             <button class="nav-item" data-stab="transfers" onclick="switchSettingsTab('transfers', this)">Transfers & Links</button>
             <button class="nav-item" data-stab="security" onclick="switchSettingsTab('security', this)">Security & Identity</button>
           </div>
 
           <div>
-            <!-- General Settings -->
+            <!-- General Settings + GitHub Update Detector -->
             <div class="glass-card settings-panel" id="stab-general">
+              <div class="card-title" style="margin-bottom:10px;">Software Updates</div>
+
+              <!-- GitHub Update Checker Box -->
+              <div style="background:var(--c-black);border:1px solid var(--c-white);padding:14px;border-radius:var(--radius-xs);margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                  <div>
+                    <div style="font-weight:700;font-size:13px;">Installed Version: <span id="settingsCurrentVersion">0.1.0</span></div>
+                    <div style="font-size:11px;opacity:0.75;font-family:var(--font-mono);margin-top:2px;">Repository: voiceline-diskrep/EtherConnectedBallisticFiles</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm" id="btnCheckUpdates" onclick="checkForSoftwareUpdates()">
+                    Check for Updates
+                  </button>
+                </div>
+                <div id="updateStatusNotice" style="font-size:12px;font-family:var(--font-mono);padding:8px 10px;background:var(--c-darkgrey);border:1px solid var(--c-white);border-radius:var(--radius-xs);">
+                  Ready to check GitHub for updates.
+                </div>
+                <div id="updateActionRow" style="display:none;margin-top:8px;">
+                  <a id="btnViewReleaseGithub" href="https://github.com/voiceline-diskrep/EtherConnectedBallisticFiles/releases" target="_blank" class="btn btn-sm" style="text-decoration:none;">
+                    View Release on GitHub
+                  </a>
+                </div>
+              </div>
+
               <div class="card-title" style="margin-bottom:10px;">Desktop Runtime Behavior</div>
               <div class="settings-row">
                 <div>
@@ -1704,12 +1668,20 @@ input:checked + .slider:before {
   </div>
 </div>
 
-<!-- INCOMING APPROVAL MODAL -->
+<!-- INCOMING APPROVAL MODAL WITH SCENARIO SWITCHER -->
 <div class="modal-backdrop" id="incomingModal">
   <div class="modal-box">
     <div class="modal-header">
       <div class="modal-title">Incoming Transfer Approval</div>
       <button class="btn btn-sm" onclick="closeModal('incomingModal')">✕</button>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:11px;font-family:var(--font-mono);">SCENARIO:</span>
+      <div class="tabs-bar">
+        <button class="tab-btn active" id="incTabTrusted" onclick="renderIncomingScenario('trusted')">Trusted Peer</button>
+        <button class="tab-btn" id="incTabUnknown" onclick="renderIncomingScenario('unknown')">Untrusted Peer</button>
+        <button class="tab-btn" id="incTabExpired" onclick="renderIncomingScenario('expired')">Expired</button>
+      </div>
     </div>
     <div id="incomingModalBody"></div>
     <div class="modal-footer" id="incomingModalFooter"></div>
@@ -1748,13 +1720,11 @@ input:checked + .slider:before {
 <div class="toast-stack" id="toastStack"></div>
 <input type="file" id="hiddenBrowserFileInput" multiple style="display:none;" onchange="handleRealFileInputPicked(event)">
 
-<!-- ============================================================================
-   TAURI IPC BRIDGE & JAVASCRIPT ENGINE
-   ============================================================================ -->
+<!-- JAVASCRIPT ENGINE & TAURI IPC BRIDGE -->
 <script>
 const STORAGE_KEY = 'ether_connected_ballistic_files_tauri_v2';
+const APP_VERSION = '0.1.0';
 
-// Tauri IPC Helper
 const isTauri = typeof window !== 'undefined' && (window.__TAURI__ || window.__TAURI_INTERNALS__);
 
 async function tauriInvoke(cmd, args = {}) {
@@ -1768,7 +1738,7 @@ async function tauriInvoke(cmd, args = {}) {
   return null;
 }
 
-// Window Caption Handlers
+// Window Caption Controls
 function appMinimize() {
   if (state.closeBehavior === 'tray') {
     minimizeToTray();
@@ -1798,12 +1768,13 @@ function appRestore() {
   document.getElementById('minimizedRestoreBar').classList.remove('visible');
 }
 
-// Initial State
+// State Model
 function getInitialState() {
   return {
-    trajectoryMode: 'hyper-rail', // hyper-rail | coil-arc | quantum
+    trajectoryMode: 'hyper-rail',
     closeBehavior: 'tray',
     defaultFolder: 'D:\\EtherTransfers\\Incoming',
+    approvalTimeout: '120',
     transferMode: 'Multi-Transfer',
     maxConcurrent: 3,
     multiLinkEnabled: true,
@@ -1961,9 +1932,10 @@ function getInitialState() {
 
 let state = loadState();
 let currentDeviceFilter = 'all';
+let currentTransferFilter = 'all';
+let pairingTargetDeviceId = null;
 let redistributedChunksActive = false;
 
-// Send Wizard
 let sendWizard = {
   step: 1,
   destinationDeviceId: 'dev-studio',
@@ -2045,7 +2017,6 @@ function resizeCanvases() {
   }
 }
 
-// In-Flight File Blocks Generator
 function spawnInFlightBlock() {
   const zone = document.getElementById('inFlightBlocksZone');
   if (!zone) return;
@@ -2083,7 +2054,6 @@ function updateInFlightBlocks() {
     b.el.style.left = `${b.x}px`;
 
     if (b.x >= maxW - 90) {
-      // Reached receiver
       const recPod = document.getElementById('fileReceiverPod');
       if (recPod) {
         recPod.classList.add('target-strike');
@@ -2095,7 +2065,6 @@ function updateInFlightBlocks() {
   }
 }
 
-// Particle Canvas Animation
 function drawParticles() {
   if (!pCtx) return;
   const w = pCanvas.width;
@@ -2106,7 +2075,6 @@ function drawParticles() {
   const activeAdapters = getActiveAdapters();
   const anyActive = state.transfers.some(t => t.status === 'active');
 
-  // Draw Rails
   state.adapters.slice(0, 2).forEach((adapter, idx) => {
     const y = laneY[idx];
     const isUp = anyActive && activeAdapters.some(a => a.id === adapter.id);
@@ -2124,7 +2092,6 @@ function drawParticles() {
     pCtx.fillText(`${adapter.name} (${adapter.linkSpeed}) — ${isUp ? `${adapter.simSpeedMBs} MB/s SOLID RAIL` : 'STANDBY'}`, 18, y - 8);
   });
 
-  // Draw Particles
   particles.forEach(p => {
     const adapter = state.adapters[p.lane];
     const isUp = anyActive && activeAdapters.some(a => a && a.id === adapter.id);
@@ -2142,13 +2109,11 @@ function drawParticles() {
       py += Math.sin(p.x * Math.PI * 4) * 8;
     }
 
-    // Solid Head
     pCtx.beginPath();
     pCtx.arc(px, py, 2.5, 0, Math.PI * 2);
     pCtx.fillStyle = '#FFFFFF';
     pCtx.fill();
 
-    // Solid Streak
     pCtx.beginPath();
     pCtx.moveTo(px - p.length, py);
     pCtx.lineTo(px, py);
@@ -2158,14 +2123,12 @@ function drawParticles() {
   });
 }
 
-// Real-Time Speed Telemetry Graph (Zero Gradients)
 function drawSpeedGraph() {
   if (!sCtx) return;
   const w = sCanvas.width;
   const h = sCanvas.height;
   sCtx.clearRect(0, 0, w, h);
 
-  // Solid Grid
   sCtx.strokeStyle = '#1E1E1E';
   sCtx.lineWidth = 1;
   for (let i = 1; i <= 3; i++) {
@@ -2176,7 +2139,6 @@ function drawSpeedGraph() {
     sCtx.stroke();
   }
 
-  // Solid 2px Stroke Line (No Fill Gradient)
   const maxV = 360;
   const stepX = w / (speedHistory.length - 1);
 
@@ -2198,7 +2160,6 @@ function animationLoop() {
   requestAnimationFrame(animationLoop);
 }
 
-// Burst trigger
 function fireKineticSalvo() {
   const senderPod = document.getElementById('fileSenderPod');
   const nodeSender = document.getElementById('nodeSender');
@@ -2209,12 +2170,10 @@ function fireKineticSalvo() {
     if (nodeSender) nodeSender.classList.remove('firing');
   }, 350);
 
-  // Spawn 6 rapid blocks
   for (let i = 0; i < 6; i++) {
     setTimeout(spawnInFlightBlock, i * 60);
   }
 
-  // Flash random chunk
   const cells = document.querySelectorAll('.chunk-cell');
   if (cells.length > 0) {
     const c = cells[Math.floor(Math.random() * cells.length)];
@@ -2225,7 +2184,6 @@ function fireKineticSalvo() {
   showToast('Salvo Burst', 'In-flight file payload blocks accelerated.');
 }
 
-// Speed interval
 setInterval(() => {
   const anyActive = state.transfers.some(t => t.status === 'active');
   const base = getCombinedSimulatedSpeed();
@@ -2259,6 +2217,8 @@ setInterval(() => {
     if (badgeEl) badgeEl.textContent = `${primary.progressPct.toFixed(1)}%`;
     const podSub = document.getElementById('filePodReceivedSub');
     if (podSub) podSub.textContent = `${doneGB} GB Reassembled`;
+    const counterEl = document.getElementById('fileBlockCounterText');
+    if (counterEl) counterEl.textContent = `In-Flight: 12 Blocks • ${primary.progressPct.toFixed(1)}% Reassembled`;
   }
 
   drawSpeedGraph();
@@ -2398,6 +2358,7 @@ function renderDevicesPage() {
     if (currentDeviceFilter === 'online') return d.status === 'online';
     if (currentDeviceFilter === 'trusted') return d.trusted;
     if (currentDeviceFilter === 'untrusted') return !d.trusted;
+    if (currentDeviceFilter === 'offline') return d.status !== 'online';
     return true;
   });
   document.getElementById('devicesPageGrid').innerHTML = filtered.map(d => buildDeviceCardHTML(d, false)).join('');
@@ -2423,16 +2384,12 @@ function handleCardFileDrop(e, deviceId, el) {
   el.classList.remove('drag-over');
   sendWizard.destinationDeviceId = deviceId;
   sendWizard.step = 3;
-  openModal('sendFilesModal');
-  renderSendWizardStep();
+  openSendFilesModal(deviceId);
   fireKineticSalvo();
 }
 
 function handleDropZoneClick(deviceId) {
-  sendWizard.destinationDeviceId = deviceId;
-  sendWizard.step = 3;
-  openModal('sendFilesModal');
-  renderSendWizardStep();
+  openSendFilesModal(deviceId);
 }
 
 function renderChunkMatrix() {
@@ -2470,7 +2427,46 @@ function renderTransfersPage() {
   document.getElementById('navTransfersCount').textContent = `${activeCount}`;
   renderChunkMatrix();
 
-  document.getElementById('transfersListContainer').innerHTML = state.transfers.map(t => `
+  const primaryJob = state.transfers.find(t => t.status === 'active') || state.transfers[0];
+  if (primaryJob) {
+    document.getElementById('vizJobTitle').textContent = primaryJob.name;
+    document.getElementById('filePodSourceName').textContent = primaryJob.name;
+    document.getElementById('filePodSourceSub').textContent = `${primaryJob.totalSizeGB.toFixed(2)} GB • ${primaryJob.fileCount || 1} Files`;
+    document.getElementById('filePodReceiverName').textContent = primaryJob.peer;
+    document.getElementById('vizReceiverName').textContent = primaryJob.peer;
+
+    // Update Stepper classes
+    const steps = ['receiving', 'reassembling', 'verifying', 'completed'];
+    const curIdx = steps.indexOf(primaryJob.lifecycle);
+    steps.forEach((s, idx) => {
+      const el = document.getElementById('step-' + s);
+      if (el) {
+        el.className = 'lifecycle-step';
+        if (primaryJob.lifecycle === 'failed') {
+          if (idx === 2) el.classList.add('error');
+        } else if (idx < curIdx || primaryJob.lifecycle === 'completed') {
+          el.classList.add('done');
+        } else if (idx === curIdx) {
+          el.classList.add('active');
+        }
+      }
+    });
+  }
+
+  // Filter transfers list by currentTransferFilter
+  const filtered = state.transfers.filter(t => currentTransferFilter === 'all' ? true : t.status === currentTransferFilter);
+  const container = document.getElementById('transfersListContainer');
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="padding:20px;text-align:center;color:var(--c-white);opacity:0.6;font-family:var(--font-mono);">
+        No transfers matching '${currentTransferFilter}' filter.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = filtered.map(t => `
     <div style="padding:12px 14px;background:var(--c-black);border:1px solid var(--c-white);border-radius:var(--radius-xs);display:flex;flex-direction:column;gap:8px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">
         <div>
@@ -2497,6 +2493,13 @@ function renderTransfersPage() {
       </div>
     </div>
   `).join('');
+}
+
+function setTransferFilter(filter, btn) {
+  currentTransferFilter = filter;
+  document.querySelectorAll('#transferFilterTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderTransfersPage();
 }
 
 function pauseTransfer(id) {
@@ -2617,12 +2620,14 @@ function toggleEmptyHistoryDemo() {
 }
 
 function renderSettingsPage() {
+  document.getElementById('settingsCurrentVersion').textContent = APP_VERSION;
   document.getElementById('setCloseBehavior').value = state.closeBehavior;
   document.getElementById('setDefaultFolder').value = state.defaultFolder;
   document.getElementById('setTrajectorySelect').value = state.trajectoryMode;
   document.getElementById('setTransferMode').value = state.transferMode;
   document.getElementById('setMaxConcurrent').value = state.maxConcurrent;
   document.getElementById('setMultiLinkEnabled').checked = state.multiLinkEnabled;
+  document.getElementById('setApprovalTimeout').value = state.approvalTimeout || '120';
 
   document.getElementById('settingsAdaptersList').innerHTML = state.adapters.map(a => `
     <div style="padding:8px 10px;background:var(--c-black);border:1px solid var(--c-white);border-radius:var(--radius-xs);display:flex;justify-content:space-between;align-items:center;">
@@ -2646,6 +2651,7 @@ function switchSettingsTab(tabId, btn) {
 function saveSettingsFromUI() {
   state.closeBehavior = document.getElementById('setCloseBehavior').value;
   state.defaultFolder = document.getElementById('setDefaultFolder').value;
+  state.approvalTimeout = document.getElementById('setApprovalTimeout').value;
   saveState();
 }
 
@@ -2681,6 +2687,67 @@ function toggleTrajectoryMode() {
   const modes = ['hyper-rail', 'coil-arc', 'quantum'];
   const next = modes[(modes.indexOf(state.trajectoryMode) + 1) % modes.length];
   setTrajectoryMode(next);
+}
+
+// GitHub Update Checker Function (Simple, direct, no cliche lines)
+async function checkForSoftwareUpdates() {
+  const btn = document.getElementById('btnCheckUpdates');
+  const notice = document.getElementById('updateStatusNotice');
+  const actionRow = document.getElementById('updateActionRow');
+  const releaseBtn = document.getElementById('btnViewReleaseGithub');
+
+  btn.disabled = true;
+  notice.textContent = 'Checking for updates...';
+  actionRow.style.display = 'none';
+
+  // Attempt via Tauri backend first
+  let res = await tauriInvoke('check_for_updates');
+
+  // Fallback to direct GitHub API if in browser mode
+  if (!res) {
+    try {
+      const response = await fetch('https://api.github.com/repos/voiceline-diskrep/EtherConnectedBallisticFiles/releases/latest', {
+        headers: { 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (response.status === 404) {
+        res = {
+          success: true,
+          message: `No releases found. Version ${APP_VERSION} is current.`,
+          has_update: false
+        };
+      } else if (!response.ok) {
+        res = {
+          success: false,
+          message: `GitHub returned status ${response.status}.`,
+          has_update: false
+        };
+      } else {
+        const data = await response.json();
+        const remoteClean = (data.tag_name || '').replace(/^v/, '').trim();
+        const hasUpdate = remoteClean !== '' && remoteClean !== APP_VERSION;
+        res = {
+          success: true,
+          message: hasUpdate ? `Update available: ${data.tag_name}` : `You are on the latest version (v${APP_VERSION}).`,
+          has_update: hasUpdate,
+          release_url: data.html_url
+        };
+      }
+    } catch (err) {
+      res = {
+        success: false,
+        message: 'Could not connect to update server.',
+        has_update: false
+      };
+    }
+  }
+
+  btn.disabled = false;
+  notice.textContent = res.message;
+
+  if (res.has_update && res.release_url) {
+    actionRow.style.display = 'block';
+    releaseBtn.href = res.release_url;
+  }
 }
 
 // Modals
@@ -2730,12 +2797,14 @@ function renderSendWizardStep() {
       <button class="btn btn-primary" onclick="sendWizard.step=2;renderSendWizardStep()">Next: Payload →</button>
     `;
   } else if (sendWizard.step === 2) {
+    const hasFiles = sendWizard.files.length > 0;
     body.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
         <span style="font-size:12px;font-family:var(--font-mono);">Payload Items (${sendWizard.files.length}):</span>
         <button class="btn btn-sm btn-primary" onclick="document.getElementById('hiddenBrowserFileInput').click()">Browse Files...</button>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto;">
+        ${!hasFiles ? '<div style="padding:20px;text-align:center;opacity:0.6;font-family:var(--font-mono);">No payload items. Click Browse Files above.</div>' : ''}
         ${sendWizard.files.map((f, i) => `
           <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:var(--c-black);border:1px solid var(--c-white);font-size:11.5px;">
             <span>${f.name}</span>
@@ -2749,7 +2818,7 @@ function renderSendWizardStep() {
     `;
     footer.innerHTML = `
       <button class="btn" onclick="sendWizard.step=1;renderSendWizardStep()">← Back</button>
-      <button class="btn btn-primary" onclick="sendWizard.step=3;renderSendWizardStep()">Next: Launch →</button>
+      <button class="btn btn-primary" ${!hasFiles ? 'disabled' : ''} onclick="sendWizard.step=3;renderSendWizardStep()">Next: Launch →</button>
     `;
   } else {
     const dest = state.devices.find(d => d.id === sendWizard.destinationDeviceId) || state.devices[0];
@@ -2804,6 +2873,7 @@ function launchTransferFromWizard() {
 }
 
 function openPairingModal(devId) {
+  pairingTargetDeviceId = devId;
   const dev = state.devices.find(d => d.id === devId) || state.devices[2];
   document.getElementById('pairingModalBody').innerHTML = `
     <div style="background:var(--c-black);padding:14px;border:1px solid var(--c-white);display:flex;justify-content:space-between;align-items:center;">
@@ -2824,27 +2894,83 @@ function openPairingModal(devId) {
 }
 
 function confirmDevicePairing() {
-  const laptop = state.devices.find(d => d.id === 'dev-laptop');
-  if (laptop) laptop.trusted = true;
+  const dev = state.devices.find(d => d.id === pairingTargetDeviceId);
+  if (dev) {
+    dev.trusted = true;
+    dev.lastSeen = 'Active now';
+  }
   saveState();
   closeModal('pairingModal');
   refreshEntireUI();
-  showToast('Paired', 'Device added to trusted cryptographic pool.');
+  showToast('Paired', `${dev ? dev.name : 'Device'} added to trusted cryptographic pool.`);
 }
 
 function openIncomingModal(scenario) {
-  document.getElementById('incomingModalBody').innerHTML = `
-    <div class="device-meta-list">
-      <div class="device-meta-row"><span>Sender</span><strong>DESKTOP-STUDIO (192.168.10.22)</strong></div>
-      <div class="device-meta-row"><span>Identity</span><code>Verified Ed25519</code></div>
-      <div class="device-meta-row"><span>Payload</span><strong>15 Files (6.80 GB Total)</strong></div>
-    </div>
-  `;
-  document.getElementById('incomingModalFooter').innerHTML = `
-    <button class="btn" onclick="closeModal('incomingModal')">Decline</button>
-    <button class="btn btn-primary" onclick="closeModal('incomingModal');fireKineticSalvo();showToast('Accepted','Receiving files from DESKTOP-STUDIO.')">Accept & Receive</button>
-  `;
   openModal('incomingModal');
+  renderIncomingScenario(scenario);
+}
+
+function renderIncomingScenario(scenario) {
+  document.getElementById('incTabTrusted').classList.toggle('active', scenario === 'trusted');
+  document.getElementById('incTabUnknown').classList.toggle('active', scenario === 'unknown');
+  document.getElementById('incTabExpired').classList.toggle('active', scenario === 'expired');
+
+  const body = document.getElementById('incomingModalBody');
+  const footer = document.getElementById('incomingModalFooter');
+
+  if (scenario === 'trusted') {
+    body.innerHTML = `
+      <div class="device-meta-list">
+        <div class="device-meta-row"><span>Sender</span><strong>DESKTOP-STUDIO (192.168.10.22)</strong></div>
+        <div class="device-meta-row"><span>Identity</span><code>Verified Ed25519</code></div>
+        <div class="device-meta-row"><span>Payload</span><strong>15 Files (6.80 GB Total)</strong></div>
+        <div class="device-meta-row"><span>Destination</span><code>${state.defaultFolder}</code></div>
+      </div>
+    `;
+    footer.innerHTML = `
+      <button class="btn" onclick="closeModal('incomingModal')">Decline</button>
+      <button class="btn btn-primary" onclick="closeModal('incomingModal');acceptIncomingPayload('DESKTOP-STUDIO','Project_Render_Clips.zip',6.8)">Accept & Receive</button>
+    `;
+  } else if (scenario === 'unknown') {
+    body.innerHTML = `
+      <div style="padding:12px;background:var(--c-black);border:1.5px dashed var(--c-white);border-radius:var(--radius-xs);font-size:12px;">
+        <strong>Untrusted Sender Blocked:</strong> LAPTOP-WORK has not been paired. You must pair the device before receiving files.
+      </div>
+    `;
+    footer.innerHTML = `
+      <button class="btn" onclick="closeModal('incomingModal')">Decline</button>
+      <button class="btn btn-primary" onclick="closeModal('incomingModal');openPairingModal('dev-laptop')">Pair LAPTOP-WORK First</button>
+    `;
+  } else {
+    body.innerHTML = `
+      <div style="padding:12px;background:var(--c-black);border:1.5px dashed var(--c-white);border-radius:var(--radius-xs);font-size:12px;">
+        <strong>Request Timed Out:</strong> Incoming transfer from GAMING-PC expired after ${state.approvalTimeout || '120'} seconds.
+      </div>
+    `;
+    footer.innerHTML = `<button class="btn btn-primary" onclick="closeModal('incomingModal')">Dismiss</button>`;
+  }
+}
+
+function acceptIncomingPayload(peerName, fileName, sizeGB) {
+  state.transfers.unshift({
+    id: 'tr-' + Math.floor(100 + Math.random() * 900),
+    name: fileName,
+    peer: peerName,
+    direction: 'Receiving',
+    fileCount: 15,
+    totalSizeGB: sizeGB,
+    progressPct: 10.0,
+    currentSpeedMBs: getCombinedSimulatedSpeed(),
+    avgSpeedMBs: getCombinedSimulatedSpeed(),
+    peakSpeedMBs: getCombinedSimulatedSpeed() + 15,
+    status: 'active',
+    lifecycle: 'receiving'
+  });
+  saveState();
+  refreshEntireUI();
+  navigateTo('transfers');
+  fireKineticSalvo();
+  showToast('Accepted', `Receiving ${fileName} from ${peerName}.`);
 }
 
 function openStateSimModal() { openModal('stateSimModal'); }
