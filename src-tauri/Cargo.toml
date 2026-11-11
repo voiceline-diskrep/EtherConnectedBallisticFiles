@@ -8,7 +8,7 @@ rust-version = "1.80"
 
 [lib]
 name = "ether_connected_ballistic_files_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2.7.4", features = [] }

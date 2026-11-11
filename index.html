@@ -454,13 +454,13 @@
     <!-- TAB 1: SEND -->
     <section class="tab-content active" id="contentSend">
       <!-- Drop Zone -->
-      <div class="drop-zone" id="dropZone" onclick="triggerFilePicker(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+      <div class="drop-zone" id="dropZone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
         <div class="drop-zone-icon">⇪</div>
         <div class="drop-zone-title">Drop any file or folder here to send</div>
-        <div class="drop-zone-sub">or click to open the Windows File Browser</div>
-        <div style="display:flex;gap:10px;justify-content:center;" onclick="event.stopPropagation()">
-          <button class="btn btn-primary" onclick="triggerFilePicker(event)">Browse Files</button>
-          <button class="btn" onclick="triggerFolderPicker(event)">Browse Folder</button>
+        <div class="drop-zone-sub">or click below to open the Windows File Browser</div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <label for="filePicker" class="btn btn-primary" style="cursor: pointer;">Browse Files</label>
+          <label for="folderPicker" class="btn" style="cursor: pointer;">Browse Folder</label>
         </div>
       </div>
 
@@ -597,11 +597,13 @@
   <div class="toast" id="toastNotice">Notification</div>
 
 <script>
-// Global Tauri IPC helper
-const isTauri = typeof window !== 'undefined' && Boolean(window.__TAURI__ || window.__TAURI_INTERNALS__);
+// Check if running inside Tauri
+function isTauriApp() {
+  return typeof window !== 'undefined' && Boolean(window.__TAURI__ || window.__TAURI_INTERNALS__);
+}
 
 async function tauriInvoke(cmd, args = {}) {
-  if (isTauri && window.__TAURI__ && window.__TAURI__.core) {
+  if (isTauriApp() && window.__TAURI__ && window.__TAURI__.core) {
     try {
       return await window.__TAURI__.core.invoke(cmd, args);
     } catch (err) {
@@ -993,8 +995,44 @@ function showToast(msg) {
   }, 2500);
 }
 
-// Startup
+// Explicit window exports for rock-solid button accessibility
+window.switchTab = switchTab;
+window.triggerFilePicker = triggerFilePicker;
+window.triggerFolderPicker = triggerFolderPicker;
+window.handleFilesSelected = handleFilesSelected;
+window.handleDragOver = handleDragOver;
+window.handleDragLeave = handleDragLeave;
+window.handleDrop = handleDrop;
+window.removeSelectedFile = removeSelectedFile;
+window.clearSelectedFiles = clearSelectedFiles;
+window.startTransfer = startTransfer;
+window.togglePauseTransfer = togglePauseTransfer;
+window.cancelTransfer = cancelTransfer;
+window.clearHistory = clearHistory;
+window.refreshNetworkAdapters = refreshNetworkAdapters;
+window.saveDeviceName = saveDeviceName;
+window.saveDownloadPath = saveDownloadPath;
+window.checkForUpdates = checkForUpdates;
+
+// Startup & Direct Event Listener Binding
 window.addEventListener('DOMContentLoaded', () => {
+  // Bind tabs
+  const tabSend = document.getElementById('tabSend');
+  const tabTransfers = document.getElementById('tabTransfers');
+  const tabSettings = document.getElementById('tabSettings');
+  if (tabSend) tabSend.addEventListener('click', () => switchTab('send'));
+  if (tabTransfers) tabTransfers.addEventListener('click', () => switchTab('transfers'));
+  if (tabSettings) tabSettings.addEventListener('click', () => switchTab('settings'));
+
+  // Bind file triggers
+  const fileInput = document.getElementById('filePicker');
+  const folderInput = document.getElementById('folderPicker');
+  const dropZone = document.getElementById('dropZone');
+
+  if (dropZone) {
+    dropZone.addEventListener('click', () => fileInput && fileInput.click());
+  }
+
   initDeviceName();
   refreshNetworkAdapters();
   drawKineticCanvas();
