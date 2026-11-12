@@ -505,11 +505,38 @@
     margin-bottom: 14px;
   }
 
+  .progress-bar-container.batch-bar {
+    height: 10px;
+    margin-bottom: 10px;
+  }
+
   .progress-bar-fill {
     height: 100%;
     background: var(--c-white);
     width: 0%;
-    transition: width 120ms linear;
+    transition: width 180ms ease-out;
+  }
+
+  .batch-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    margin-bottom: 5px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .queue-pill {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border: 1px solid var(--c-white);
+    border-radius: 999px;
+    background: var(--c-black);
+    color: var(--c-white);
   }
 
   .telemetry-grid {
@@ -542,18 +569,22 @@
   .chunk-matrix {
     display: grid;
     grid-template-columns: repeat(24, 1fr);
-    gap: 3px;
+    gap: 4px;
     margin-top: 6px;
   }
 
   .chunk-block {
-    height: 14px;
+    height: 10px;
     background: var(--c-darkgrey);
     border: 1px solid var(--c-white);
+    border-radius: 999px;
+    opacity: 0.45;
+    transition: background-color 200ms ease, opacity 200ms ease;
   }
 
   .chunk-block.done {
     background: var(--c-white);
+    opacity: 1;
   }
 
   /* Settings */
@@ -719,7 +750,11 @@
               0 MB / 0 MB
             </div>
           </div>
-          <div style="display:flex;gap:8px;">
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span class="queue-pill" id="corridorQueueBadge">Queue: 0 waiting</span>
+            <button class="btn btn-sm" id="btnCorridorAddFiles" type="button">+ Add Files</button>
+            <button class="btn btn-sm" id="btnCorridorAddFolder" type="button">+ Add Folder</button>
+            <button class="btn btn-sm" id="btnCorridorSound" type="button">Sound: ON</button>
             <button class="btn btn-sm" id="btnPauseResume" type="button">Pause</button>
             <button class="btn btn-sm" id="btnCancelTransfer" type="button">Cancel</button>
           </div>
@@ -758,6 +793,14 @@
           </div>
         </div>
 
+        <div class="batch-progress-header">
+          <span id="batchProgressLine" style="font-weight:700;">TOTAL BATCH: File 1 of 1 • 0 B / 0 B (0.0%)</span>
+          <span id="currentFilePctLine">CURRENT FILE: 0.0%</span>
+        </div>
+        <div class="progress-bar-container batch-bar">
+          <div class="progress-bar-fill" id="batchProgressBar"></div>
+        </div>
+
         <div class="progress-bar-container">
           <div class="progress-bar-fill" id="transferProgressBar"></div>
         </div>
@@ -783,7 +826,7 @@
 
         <div>
           <div style="font-size:10.5px;font-family:var(--font-mono);margin-bottom:4px;">
-            REAL-TIME CHUNK VERIFICATION MATRIX (512 KB BLOCKS ACROSS ACTIVE WIRES)
+            REAL-TIME STREAM SEGMENTS (4 MB CHUNKS ACROSS ACTIVE WIRES)
           </div>
           <div class="chunk-matrix" id="chunkMatrix"></div>
         </div>
@@ -860,6 +903,14 @@
 
         <div class="settings-row">
           <div>
+            <div class="settings-label-title">Transfer Sounds</div>
+            <div class="settings-label-desc">Play subtle synthesized Web Audio cues on transfer start, data flow, completion, and errors (100% offline).</div>
+          </div>
+          <button class="btn btn-sm" id="btnSettingsSound" type="button" aria-pressed="true">Sound: ON</button>
+        </div>
+
+        <div class="settings-row">
+          <div>
             <div class="settings-label-title">Application Updates</div>
             <div class="settings-label-desc" id="updateStatusText">Version 0.1.1</div>
           </div>
@@ -888,6 +939,101 @@
   let latestSnapshot = null;
   let activeTab = 'send';
   let lastTransferIdSeen = null;
+  let lastErrorTransferId = null;
+  let lastSoundTickAt = 0;
+  let hasInitializedHistory = false;
+  let lastHistoryTopKey = null;
+
+  let soundsEnabled = (() => {
+    try {
+      const saved = localStorage.getItem('ecbf_sounds_enabled');
+      return saved === null ? true : saved === 'true';
+    } catch (_) {
+      return true;
+    }
+  })();
+
+  let audioCtx = null;
+  function getAudioCtx() {
+    if (!soundsEnabled) return null;
+    try {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        audioCtx = new Ctx();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
+      }
+      return audioCtx;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function playTone(freq, durationSec, type = 'sine', gainVal = 0.05, delaySec = 0) {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+      const now = ctx.currentTime + delaySec;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, now);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(gainVal, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + durationSec + 0.01);
+    } catch (_) {}
+  }
+
+  function playSoundStart() {
+    playTone(523.25, 0.12, 'sine', 0.05, 0);
+    playTone(659.25, 0.16, 'sine', 0.05, 0.09);
+  }
+
+  function playSoundTick() {
+    playTone(880, 0.025, 'sine', 0.015, 0);
+  }
+
+  function playSoundComplete() {
+    playTone(587.33, 0.13, 'sine', 0.055, 0);
+    playTone(880.0, 0.22, 'sine', 0.055, 0.1);
+  }
+
+  function playSoundError() {
+    playTone(190, 0.15, 'triangle', 0.06, 0);
+    playTone(140, 0.22, 'triangle', 0.06, 0.12);
+  }
+
+  function syncSoundToggleUI() {
+    const label = soundsEnabled ? 'Sound: ON' : 'Sound: OFF';
+    const b1 = document.getElementById('btnCorridorSound');
+    const b2 = document.getElementById('btnSettingsSound');
+    if (b1) {
+      b1.textContent = label;
+      b1.setAttribute('aria-pressed', String(soundsEnabled));
+    }
+    if (b2) {
+      b2.textContent = label;
+      b2.setAttribute('aria-pressed', String(soundsEnabled));
+    }
+  }
+
+  function toggleSounds() {
+    soundsEnabled = !soundsEnabled;
+    try {
+      localStorage.setItem('ecbf_sounds_enabled', String(soundsEnabled));
+    } catch (_) {}
+    syncSoundToggleUI();
+    if (soundsEnabled) {
+      playTone(659.25, 0.08, 'sine', 0.04, 0);
+    }
+    showToast(soundsEnabled ? 'Transfer sounds enabled.' : 'Transfer sounds muted.');
+  }
 
   function formatBytes(bytes) {
     if (!bytes || bytes <= 0) return '0 B';
@@ -1063,7 +1209,11 @@
         };
       });
 
-      if (peers.length > 0) {
+      if (snap.active_transfer) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Add to Active Transfer Queue →';
+        sendHint.textContent = `Appending ${files.length} file${files.length > 1 ? 's' : ''} to active transfer`;
+      } else if (peers.length > 0) {
         const targetPeer = peers[0];
         sendBtn.disabled = false;
         sendBtn.textContent = `Send to ${targetPeer.node_name} (${targetPeer.links.length} Cable${targetPeer.links.length > 1 ? 's' : ''}) →`;
@@ -1083,8 +1233,21 @@
     if (act) {
       if (lastTransferIdSeen !== act.transfer_id) {
         lastTransferIdSeen = act.transfer_id;
+        lastSoundTickAt = Date.now();
+        playSoundStart();
         switchTab('transfers');
       }
+      if (act.status === 'transferring') {
+        const nowMs = Date.now();
+        if (nowMs - lastSoundTickAt >= 600) {
+          lastSoundTickAt = nowMs;
+          playSoundTick();
+        }
+      } else if ((act.status === 'failed' || act.status === 'error') && lastErrorTransferId !== act.transfer_id) {
+        lastErrorTransferId = act.transfer_id;
+        playSoundError();
+      }
+
       corridor.style.display = 'block';
       noActiveCard.style.display = 'none';
 
@@ -1092,6 +1255,21 @@
         `${act.direction.toUpperCase()} (${act.status.toUpperCase()}): ${act.file_name}`;
       document.getElementById('transferSubLine').textContent =
         `${formatBytes(act.transferred_bytes)} of ${formatBytes(act.total_bytes)} • ${act.completed_chunks} / ${act.total_chunks} Chunks`;
+
+      const batchTotalFiles = Math.max(1, act.batch_total_files ?? 1);
+      const batchCompletedFiles = act.batch_completed_files ?? 0;
+      const currentFileIdx = Math.min(batchTotalFiles, batchCompletedFiles + 1);
+      const batchTotalBytes = act.batch_total_bytes ?? act.total_bytes ?? 0;
+      const batchTransferredBytes = act.batch_transferred_bytes ?? act.transferred_bytes ?? 0;
+      const batchPct = Math.max(0, Math.min(100, act.batch_progress_pct ?? act.progress_pct ?? 0));
+      const queuedCount = act.queued_files_count ?? Math.max(0, batchTotalFiles - currentFileIdx);
+
+      document.getElementById('corridorQueueBadge').textContent = `Queue: ${queuedCount} waiting`;
+      document.getElementById('batchProgressLine').textContent =
+        `TOTAL BATCH: File ${currentFileIdx} of ${batchTotalFiles} • ${formatBytes(batchTransferredBytes)} / ${formatBytes(batchTotalBytes)} (${batchPct.toFixed(1)}%)`;
+      document.getElementById('currentFilePctLine').textContent =
+        `CURRENT FILE: ${(act.progress_pct || 0).toFixed(1)}%`;
+      document.getElementById('batchProgressBar').style.width = batchPct + '%';
 
       const isSending = act.direction === 'Sending';
       document.getElementById('podSourceName').textContent = isSending ? snap.local_device_name : act.peer_name;
@@ -1119,6 +1297,20 @@
     // 5. Render Completed History
     const histEl = document.getElementById('historyList');
     const hist = snap.history || [];
+    const topHistKey = hist.length > 0
+      ? (hist[0].transfer_id || `${hist[0].file_name}|${hist[0].total_bytes}|${hist.length}`)
+      : null;
+    if (!hasInitializedHistory) {
+      hasInitializedHistory = true;
+      lastHistoryTopKey = topHistKey;
+    } else if (topHistKey && topHistKey !== lastHistoryTopKey) {
+      lastHistoryTopKey = topHistKey;
+      if (hist[0].verified === false) {
+        playSoundError();
+      } else {
+        playSoundComplete();
+      }
+    }
     if (hist.length === 0) {
       histEl.innerHTML = '<div style="padding:16px;text-align:center;">No completed transfers in this session yet.</div>';
     } else {
@@ -1146,19 +1338,55 @@
   }
 
   // Real-time Multi-Lane Kinetic Canvas (Driven strictly by real active transfer state!)
-  const particles = Array.from({ length: 36 }).map((_, i) => ({
+  const particles = Array.from({ length: 40 }).map((_, i) => ({
     idx: i,
-    x: Math.random() * 700,
-    width: 22 + (i % 4) * 8,
-    baseSpeed: 4 + (i % 5) * 1.8
+    xNorm: (i / 40 + (i % 5) * 0.03) % 1,
+    width: 18 + (i % 5) * 6,
+    height: i % 2 === 0 ? 8 : 6,
+    alpha: i % 3 === 0 ? 0.35 : (0.6 + (i % 4) * 0.1),
+    isMuted: i % 4 === 0,
+    baseSpeed: 0.28 + (i % 5) * 0.09
   }));
 
-  function renderKineticCanvas() {
+  function drawCapsule(ctx, x, y, width, height) {
+    const r = Math.min(height / 2, width / 2);
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') {
+      ctx.roundRect(x, y, width, height, r);
+    } else {
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + width - r, y);
+      ctx.arcTo(x + width, y, x + width, y + r, r);
+      ctx.lineTo(x + width, y + height - r);
+      ctx.arcTo(x + width, y + height, x + width - r, y + height, r);
+      ctx.lineTo(x + r, y + height);
+      ctx.arcTo(x, y + height, x, y + height - r, r);
+      ctx.lineTo(x, y + r);
+      ctx.arcTo(x, y, x + r, y, r);
+      ctx.closePath();
+    }
+    ctx.fill();
+  }
+
+  let lastCanvasTime = 0;
+  function renderKineticCanvas(now = performance.now()) {
+    const dt = lastCanvasTime ? Math.min(0.05, (now - lastCanvasTime) / 1000) : 0.016;
+    lastCanvasTime = now;
+
     const canvas = document.getElementById('multiLaneCanvas');
     if (canvas) {
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const w = canvas.clientWidth || 700;
+      const h = canvas.clientHeight || 150;
+      const targetW = Math.round(w * dpr);
+      const targetH = Math.round(h * dpr);
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
+
       const ctx = canvas.getContext('2d');
-      const w = canvas.width;
-      const h = canvas.height;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       ctx.fillStyle = '#000000';
       ctx.fillRect(0, 0, w, h);
@@ -1170,47 +1398,72 @@
 
       const laneCount = lanes.length;
       const laneH = h / laneCount;
+      const isTransferring = Boolean(act && act.status === 'transferring');
 
       for (let i = 0; i < laneCount; i++) {
         const yCenter = (i + 0.5) * laneH;
         const lane = lanes[i];
 
+        // Solid outer guide rails
+        ctx.save();
         ctx.strokeStyle = '#1E1E1E';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(0, yCenter - 14); ctx.lineTo(w, yCenter - 14);
-        ctx.moveTo(0, yCenter + 14); ctx.lineTo(w, yCenter + 14);
+        ctx.moveTo(0, yCenter - 13); ctx.lineTo(w, yCenter - 13);
+        ctx.moveTo(0, yCenter + 13); ctx.lineTo(w, yCenter + 13);
         ctx.stroke();
 
-        ctx.fillStyle = lane.active === false ? '#666666' : '#FFFFFF';
-        ctx.font = 'bold 10.5px monospace';
+        // Subtle dashed center rail
+        ctx.setLineDash([6, 8]);
+        ctx.lineDashOffset = isTransferring ? -((now * 0.045) % 14) : 0;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, yCenter);
+        ctx.lineTo(w, yCenter);
+        ctx.stroke();
+        ctx.restore();
+
+        // Lane label
+        ctx.save();
+        ctx.fillStyle = '#FFFFFF';
+        ctx.globalAlpha = lane.active === false ? 0.45 : 1.0;
+        ctx.font = 'bold 10.5px "SF Mono", "Cascadia Code", Consolas, monospace';
         const statusTag = lane.active === false ? ' [INACTIVE]' : '';
         ctx.fillText(
-          `WIRE ${i + 1}: ${lane.port_type.toUpperCase()} (${lane.link_speed_mbps} Mbps) — ${formatBytes(lane.bytes_sent)} (${lane.chunks_sent} blk)${statusTag}`,
+          `WIRE ${i + 1}: ${lane.port_type.toUpperCase()} (${lane.link_speed_mbps} Mbps) — ${formatBytes(lane.bytes_sent)} (${lane.chunks_sent} seg)${statusTag}`,
           10,
-          yCenter - 19
+          yCenter - 18
         );
+        ctx.restore();
       }
 
-      if (act && act.status === 'transferring') {
+      if (isTransferring) {
         for (let p of particles) {
           const laneIdx = p.idx % laneCount;
           const lane = lanes[laneIdx];
           if (lane.active === false) continue;
           const yCenter = (laneIdx + 0.5) * laneH;
-          const speedScale = Math.max(0.8, Math.min(3.0, (lane.link_speed_mbps || 100) / 100));
+          const speedScale = Math.max(0.75, Math.min(2.6, (lane.link_speed_mbps || 100) / 150));
+          const easeFactor = 0.85 + 0.15 * Math.sin(p.xNorm * Math.PI);
 
-          ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(p.x, yCenter - 7, p.width, 14);
-
-          ctx.fillStyle = '#000000';
-          ctx.font = 'bold 8px monospace';
-          ctx.fillText('BLK', p.x + 3, yCenter + 3);
-
-          p.x += p.baseSpeed * speedScale;
-          if (p.x > w) {
-            p.x = -p.width;
+          p.xNorm += p.baseSpeed * speedScale * easeFactor * dt;
+          if (p.xNorm > 1.08) {
+            p.xNorm = -0.08;
           }
+
+          const px = p.xNorm * w;
+          const py = yCenter - p.height / 2;
+
+          ctx.save();
+          if (p.isMuted) {
+            ctx.fillStyle = '#1E1E1E';
+            ctx.globalAlpha = 0.95;
+          } else {
+            ctx.fillStyle = '#FFFFFF';
+            ctx.globalAlpha = p.alpha;
+          }
+          drawCapsule(ctx, px, py, p.width, p.height);
+          ctx.restore();
         }
       }
     }
@@ -1273,19 +1526,37 @@
     };
 
     document.getElementById('btnSendFiles').onclick = async () => {
-      if (!latestSnapshot || !latestSnapshot.peers || latestSnapshot.peers.length === 0) {
+      const hasActive = Boolean(latestSnapshot && latestSnapshot.active_transfer);
+      const peers = (latestSnapshot && latestSnapshot.peers) ? latestSnapshot.peers : [];
+      if (!hasActive && peers.length === 0) {
         showToast('No peer computer connected on the cable.');
         return;
       }
-      const targetPeer = latestSnapshot.peers[0];
+      const peerNodeId = peers.length > 0
+        ? peers[0].node_id
+        : (latestSnapshot.active_transfer.peer_node_id || '');
       try {
-        await invokeCmd('start_real_transfer', { peerNodeId: targetPeer.node_id });
+        await invokeCmd('start_real_transfer', { peerNodeId });
         switchTab('transfers');
         await pollSnapshot(false);
       } catch (err) {
         showToast(String(err));
       }
     };
+
+    document.getElementById('btnCorridorAddFiles').onclick = async () => {
+      await invokeCmd('pick_files_native');
+      await pollSnapshot(false);
+    };
+
+    document.getElementById('btnCorridorAddFolder').onclick = async () => {
+      await invokeCmd('pick_folder_native');
+      await pollSnapshot(false);
+    };
+
+    document.getElementById('btnCorridorSound').onclick = toggleSounds;
+    document.getElementById('btnSettingsSound').onclick = toggleSounds;
+    syncSoundToggleUI();
 
     document.getElementById('btnPauseResume').onclick = async () => {
       const paused = await invokeCmd('toggle_pause_transfer');

@@ -97,6 +97,18 @@ pub struct ActiveTransferState {
     pub lanes: Vec<LaneProgress>,
     pub status: String, // "transferring", "verifying", "completed", "failed", "cancelled"
     pub error_message: Option<String>,
+    #[serde(default)]
+    pub batch_total_files: usize,
+    #[serde(default)]
+    pub batch_completed_files: usize,
+    #[serde(default)]
+    pub batch_total_bytes: u64,
+    #[serde(default)]
+    pub batch_transferred_bytes: u64,
+    #[serde(default)]
+    pub batch_progress_pct: f64,
+    #[serde(default)]
+    pub queued_files_count: usize,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -156,6 +168,11 @@ pub struct EngineState {
     pub cables: Vec<WiredCableInfo>,
     pub peers: HashMap<String, PeerDeviceInfo>,
     pub selected_files: Vec<SelectedFileItem>,
+    pub transfer_queue: std::collections::VecDeque<SelectedFileItem>,
+    pub batch_completed_files: usize,
+    pub batch_completed_bytes: u64,
+    pub batch_total_files: usize,
+    pub batch_total_bytes: u64,
     pub active_transfer: Option<ActiveTransferState>,
     pub history: Vec<TransferHistoryItem>,
     prev_octets: HashMap<u32, PrevOctets>,
@@ -198,6 +215,11 @@ fn get_engine() -> &'static Arc<Mutex<EngineState>> {
             cables: Vec::new(),
             peers: HashMap::new(),
             selected_files: Vec::new(),
+            transfer_queue: std::collections::VecDeque::new(),
+            batch_completed_files: 0,
+            batch_completed_bytes: 0,
+            batch_total_files: 0,
+            batch_total_bytes: 0,
             active_transfer: Vec::new().pop(),
             history: Vec::new(),
             prev_octets: HashMap::new(),
@@ -205,6 +227,56 @@ fn get_engine() -> &'static Arc<Mutex<EngineState>> {
             pause_flag: Arc::new(AtomicBool::new(false)),
         }))
     })
+}
+
+fn compute_batch_pct(transferred: u64, total: u64) -> f64 {
+    if total > 0 {
+        (((transferred as f64 / total as f64) * 1000.0).round() / 10.0).min(100.0)
+    } else {
+        100.0
+    }
+}
+
+fn enqueue_files_into_active_transfer(st: &mut EngineState, new_files: Vec<SelectedFileItem>) {
+    if new_files.is_empty() {
+        return;
+    }
+    let added_count = new_files.len();
+    let added_bytes: u64 = new_files.iter().map(|f| f.size).sum();
+    for f in new_files {
+        st.transfer_queue.push_back(f);
+    }
+    st.batch_total_files = st.batch_total_files.saturating_add(added_count);
+    st.batch_total_bytes = st.batch_total_bytes.saturating_add(added_bytes);
+    let q_len = st.transfer_queue.len();
+    let b_total_files = st.batch_total_files;
+    let b_total_bytes = st.batch_total_bytes;
+    if let Some(ref mut act) = st.active_transfer {
+        act.batch_total_files = b_total_files;
+        act.batch_total_bytes = b_total_bytes;
+        act.queued_files_count = q_len;
+        act.batch_progress_pct = compute_batch_pct(act.batch_transferred_bytes, b_total_bytes);
+    }
+}
+
+fn update_chunk_states(
+    chunk_states: &mut [u8],
+    completed_chunks: u64,
+    total_chunks: u64,
+    lane_index: usize,
+) {
+    let total = total_chunks.max(1) as usize;
+    let filled = if completed_chunks >= total_chunks {
+        chunk_states.len()
+    } else {
+        (((completed_chunks as usize) * chunk_states.len()) / total).min(chunk_states.len())
+    };
+    let lane_val = (lane_index as u8) + 1;
+    for cell in &mut chunk_states[..filled] {
+        if *cell == 0 {
+            *cell = lane_val;
+        }
+    }
 }
 
 // ============================================================================
@@ -731,6 +803,7 @@ fn spawn_background_networking() {
                                         lane_name: String::new(),
                                         expected_sha256: String::new(),
                                         lanes: Vec::new(),
+                                        ..Default::default()
                                     };
                                     let _ = send_wire_command(&mut stream, &hello);
                                 }
@@ -876,6 +949,7 @@ fn spawn_background_networking() {
                                         lane_name: String::new(),
                                         expected_sha256: String::new(),
                                         lanes: Vec::new(),
+                                        ..Default::default()
                                     };
                                     if send_wire_command(&mut stream, &hello).is_ok() {
                                         if let Ok(ack) = read_wire_command(&mut stream) {
@@ -929,7 +1003,7 @@ fn spawn_background_networking() {
 // REAL TCP WIRE PROTOCOL (RECEIVER & HANDSHAKE)
 // ============================================================================
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 struct WireCommand {
     cmd: String,
     #[serde(default)]
@@ -964,6 +1038,14 @@ struct WireCommand {
     expected_sha256: String,
     #[serde(default)]
     lanes: Vec<LaneProgress>,
+    #[serde(default)]
+    batch_total_files: usize,
+    #[serde(default)]
+    batch_completed_files: usize,
+    #[serde(default)]
+    batch_total_bytes: u64,
+    #[serde(default)]
+    batch_bytes_before: u64,
 }
 
 fn read_wire_command_into(
@@ -1006,6 +1088,8 @@ struct IncomingFileTrack {
     started_at: Instant,
     total_bytes: u64,
     total_chunks: u64,
+    batch_total_bytes: u64,
+    batch_bytes_before: u64,
     bytes_received: AtomicU64,
     chunks_received: AtomicU64,
     last_ui_sync_ms: AtomicU64,
@@ -1062,6 +1146,7 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                     lane_name: String::new(),
                     expected_sha256: String::new(),
                     lanes: Vec::new(),
+                    ..Default::default()
                 };
 
                 if let Ok(mut st) = engine.lock() {
@@ -1113,6 +1198,18 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                     .open(&part_path)
                 {
                     let _ = file.set_len(req.file_size);
+                    let batch_total_files = req.batch_total_files.max(1);
+                    let batch_completed_files = req.batch_completed_files;
+                    let batch_total_bytes = req.batch_total_bytes.max(req.file_size);
+                    let batch_bytes_before = req.batch_bytes_before;
+                    let batch_progress_pct = if batch_total_bytes > 0 {
+                        compute_batch_pct(batch_bytes_before, batch_total_bytes)
+                    } else {
+                        0.0
+                    };
+                    let queued_files_count =
+                        batch_total_files.saturating_sub(batch_completed_files.saturating_add(1));
+
                     if let Ok(mut map) = get_incoming_files().lock() {
                         map.insert(
                             req.transfer_id.clone(),
@@ -1123,6 +1220,8 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                                 started_at: Instant::now(),
                                 total_bytes: req.file_size,
                                 total_chunks: req.total_chunks.max(1),
+                                batch_total_bytes,
+                                batch_bytes_before,
                                 bytes_received: AtomicU64::new(0),
                                 chunks_received: AtomicU64::new(0),
                                 last_ui_sync_ms: AtomicU64::new(0),
@@ -1150,6 +1249,12 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                             lanes: req.lanes,
                             status: "transferring".to_string(),
                             error_message: None,
+                            batch_total_files,
+                            batch_completed_files,
+                            batch_total_bytes,
+                            batch_transferred_bytes: batch_bytes_before,
+                            batch_progress_pct,
+                            queued_files_count,
                         });
                     }
 
@@ -1250,11 +1355,20 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                                         0
                                     };
 
-                                    let cell = ((req.chunk_index as usize) * 24)
-                                        / (act.total_chunks.max(1) as usize);
-                                    if cell < 24 {
-                                        act.chunk_states[cell] = (req.lane_index as u8) + 1;
-                                    }
+                                    let b_transferred = track
+                                        .batch_bytes_before
+                                        .saturating_add(total_rx)
+                                        .min(track.batch_total_bytes.max(total_rx));
+                                    act.batch_transferred_bytes = b_transferred;
+                                    act.batch_progress_pct =
+                                        compute_batch_pct(b_transferred, track.batch_total_bytes);
+
+                                    update_chunk_states(
+                                        &mut act.chunk_states,
+                                        total_chk,
+                                        act.total_chunks,
+                                        req.lane_index,
+                                    );
                                     for (li, lane) in act.lanes.iter_mut().enumerate() {
                                         if li < 16 {
                                             lane.bytes_sent =
@@ -1433,10 +1547,15 @@ fn connect_bound_tcp(
 async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
     let engine = get_engine().clone();
 
-    let (peer, files, sender_name, cancel_flag, pause_flag) = {
-        let st = engine.lock().map_err(|e| e.to_string())?;
+    let (peer, sender_name, cancel_flag, pause_flag) = {
+        let mut st = engine.lock().map_err(|e| e.to_string())?;
         if st.active_transfer.is_some() {
-            return Err("A transfer is already in progress.".to_string());
+            if st.selected_files.is_empty() {
+                return Err("A transfer is already in progress.".to_string());
+            }
+            let files_to_add = std::mem::take(&mut st.selected_files);
+            enqueue_files_into_active_transfer(&mut st, files_to_add);
+            return Ok("Added to active transfer queue".to_string());
         }
         let peer = st
             .peers
@@ -1454,9 +1573,20 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
         st.cancel_flag.store(false, Ordering::SeqCst);
         st.pause_flag.store(false, Ordering::SeqCst);
 
+        let files = std::mem::take(&mut st.selected_files);
+        let total_files = files.len();
+        let total_bytes: u64 = files.iter().map(|f| f.size).sum();
+        st.transfer_queue.clear();
+        for f in files {
+            st.transfer_queue.push_back(f);
+        }
+        st.batch_completed_files = 0;
+        st.batch_completed_bytes = 0;
+        st.batch_total_files = total_files;
+        st.batch_total_bytes = total_bytes;
+
         (
             peer,
-            st.selected_files.clone(),
             st.device_name.clone(),
             st.cancel_flag.clone(),
             st.pause_flag.clone(),
@@ -1464,10 +1594,19 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
     };
 
     tokio::task::spawn_blocking(move || {
-        for file_item in files {
+        loop {
             if cancel_flag.load(Ordering::SeqCst) {
                 break;
             }
+
+            let next_item = if let Ok(mut st) = engine.lock() {
+                st.transfer_queue.pop_front()
+            } else {
+                None
+            };
+            let Some(file_item) = next_item else {
+                break;
+            };
 
             let path = PathBuf::from(&file_item.path);
             let meta = match fs::metadata(&path) {
@@ -1478,6 +1617,11 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                             act.status = "failed".to_string();
                             act.error_message = Some(format!("Cannot read file: {}", e));
                         }
+                        st.transfer_queue.clear();
+                        st.batch_completed_files = 0;
+                        st.batch_completed_bytes = 0;
+                        st.batch_total_files = 0;
+                        st.batch_total_bytes = 0;
                     }
                     return;
                 }
@@ -1500,26 +1644,46 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                 })
                 .collect();
 
-            if let Ok(mut st) = engine.lock() {
-                st.active_transfer = Some(ActiveTransferState {
-                    transfer_id: transfer_id.clone(),
-                    direction: "Sending".to_string(),
-                    peer_name: peer.node_name.clone(),
-                    file_name: file_item.name.clone(),
-                    total_bytes: file_size,
-                    transferred_bytes: 0,
-                    progress_pct: 0.0,
-                    speed_mbs: 0.0,
-                    speed_mbps: 0.0,
-                    eta_seconds: 0,
-                    total_chunks,
-                    completed_chunks: 0,
-                    chunk_states: vec![0; 24],
-                    lanes: lanes.clone(),
-                    status: "transferring".to_string(),
-                    error_message: None,
-                });
-            }
+            let (b_total_files, b_completed_files, b_total_bytes, b_bytes_before) =
+                if let Ok(mut st) = engine.lock() {
+                    let b_total_files = st.batch_total_files.max(1);
+                    let b_completed_files = st.batch_completed_files;
+                    let b_total_bytes = st.batch_total_bytes.max(file_size);
+                    let b_bytes_before = st.batch_completed_bytes;
+                    let q_count = st.transfer_queue.len();
+                    let b_pct = if b_total_bytes > 0 {
+                        compute_batch_pct(b_bytes_before, b_total_bytes)
+                    } else {
+                        0.0
+                    };
+                    st.active_transfer = Some(ActiveTransferState {
+                        transfer_id: transfer_id.clone(),
+                        direction: "Sending".to_string(),
+                        peer_name: peer.node_name.clone(),
+                        file_name: file_item.name.clone(),
+                        total_bytes: file_size,
+                        transferred_bytes: 0,
+                        progress_pct: 0.0,
+                        speed_mbs: 0.0,
+                        speed_mbps: 0.0,
+                        eta_seconds: 0,
+                        total_chunks,
+                        completed_chunks: 0,
+                        chunk_states: vec![0; 24],
+                        lanes: lanes.clone(),
+                        status: "transferring".to_string(),
+                        error_message: None,
+                        batch_total_files: b_total_files,
+                        batch_completed_files: b_completed_files,
+                        batch_total_bytes: b_total_bytes,
+                        batch_transferred_bytes: b_bytes_before,
+                        batch_progress_pct: b_pct,
+                        queued_files_count: q_count,
+                    });
+                    (b_total_files, b_completed_files, b_total_bytes, b_bytes_before)
+                } else {
+                    (1, 0, file_size, 0)
+                };
 
             // 1. Send INIT_TRANSFER on primary link
             let primary_link = &peer.links[0];
@@ -1537,6 +1701,11 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                             act.error_message =
                                 Some(format!("Failed to connect to {}: {}", peer.node_name, e));
                         }
+                        st.transfer_queue.clear();
+                        st.batch_completed_files = 0;
+                        st.batch_completed_bytes = 0;
+                        st.batch_total_files = 0;
+                        st.batch_total_bytes = 0;
                     }
                     return;
                 }
@@ -1544,27 +1713,27 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
 
             let init_cmd = WireCommand {
                 cmd: "INIT_TRANSFER".to_string(),
-                node_id: String::new(),
-                node_name: String::new(),
-                port_type: String::new(),
-                speed_mbps: 0,
                 transfer_id: transfer_id.clone(),
                 sender_name: sender_name.clone(),
                 file_name: file_item.name.clone(),
                 file_size,
                 total_chunks,
-                chunk_index: 0,
-                offset: 0,
-                length: 0,
-                lane_index: 0,
-                lane_name: String::new(),
-                expected_sha256: String::new(),
                 lanes,
+                batch_total_files: b_total_files,
+                batch_completed_files: b_completed_files,
+                batch_total_bytes: b_total_bytes,
+                batch_bytes_before: b_bytes_before,
+                ..Default::default()
             };
 
             if send_wire_command(&mut ctrl_stream, &init_cmd).is_err() {
                 if let Ok(mut st) = engine.lock() {
                     st.active_transfer = None;
+                    st.transfer_queue.clear();
+                    st.batch_completed_files = 0;
+                    st.batch_completed_bytes = 0;
+                    st.batch_total_files = 0;
+                    st.batch_total_bytes = 0;
                 }
                 return;
             }
@@ -1573,6 +1742,11 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
             if ctrl_stream.read_exact(&mut ack).is_err() || &ack != b"OK" {
                 if let Ok(mut st) = engine.lock() {
                     st.active_transfer = None;
+                    st.transfer_queue.clear();
+                    st.batch_completed_files = 0;
+                    st.batch_completed_bytes = 0;
+                    st.batch_total_files = 0;
+                    st.batch_total_bytes = 0;
                 }
                 return;
             }
@@ -1649,22 +1823,12 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                     };
                     let mut chunk_cmd = WireCommand {
                         cmd: "CHUNK".to_string(),
-                        node_id: String::new(),
-                        node_name: String::new(),
-                        port_type: String::new(),
-                        speed_mbps: 0,
                         transfer_id: tid_clone.clone(),
-                        sender_name: String::new(),
-                        file_name: String::new(),
                         file_size,
                         total_chunks,
-                        chunk_index: 0,
-                        offset: 0,
-                        length: 0,
                         lane_index: lane_idx,
                         lane_name: link.local_interface_name.clone(),
-                        expected_sha256: String::new(),
-                        lanes: Vec::new(),
+                        ..Default::default()
                     };
 
                     loop {
@@ -1746,6 +1910,16 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                         {
                             let elapsed = started_at.elapsed().as_secs_f64().max(0.001);
                             if let Ok(mut st) = eng_clone.lock() {
+                                let b_total_files = st.batch_total_files.max(1);
+                                let b_completed_files = st.batch_completed_files;
+                                let b_total_bytes = st.batch_total_bytes.max(file_size);
+                                let b_transferred = st
+                                    .batch_completed_bytes
+                                    .saturating_add(cur_bytes)
+                                    .min(b_total_bytes.max(cur_bytes));
+                                let b_pct = compute_batch_pct(b_transferred, b_total_bytes);
+                                let q_count = st.transfer_queue.len();
+
                                 if let Some(ref mut act) = st.active_transfer {
                                     if act.transfer_id == tid_clone {
                                         act.transferred_bytes = cur_bytes;
@@ -1769,12 +1943,19 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                                         } else {
                                             0
                                         };
+                                        act.batch_total_files = b_total_files;
+                                        act.batch_completed_files = b_completed_files;
+                                        act.batch_total_bytes = b_total_bytes;
+                                        act.batch_transferred_bytes = b_transferred;
+                                        act.batch_progress_pct = b_pct;
+                                        act.queued_files_count = q_count;
 
-                                        let cell =
-                                            ((idx as usize) * 24) / (total_chunks.max(1) as usize);
-                                        if cell < 24 {
-                                            act.chunk_states[cell] = (lane_idx as u8) + 1;
-                                        }
+                                        update_chunk_states(
+                                            &mut act.chunk_states,
+                                            cur_chunks,
+                                            total_chunks,
+                                            lane_idx,
+                                        );
                                         for (li, lane) in act.lanes.iter_mut().enumerate() {
                                             if li < 16 {
                                                 lane.bytes_sent = lane_bytes_clone[li]
@@ -1825,6 +2006,11 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
             if cancel_flag.load(Ordering::SeqCst) || worker_failed.load(Ordering::SeqCst) {
                 if let Ok(mut st) = engine.lock() {
                     st.active_transfer = None;
+                    st.transfer_queue.clear();
+                    st.batch_completed_files = 0;
+                    st.batch_completed_bytes = 0;
+                    st.batch_total_files = 0;
+                    st.batch_total_bytes = 0;
                 }
                 return;
             }
@@ -1857,22 +2043,12 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
 
             let fin_cmd = WireCommand {
                 cmd: "FINISH_TRANSFER".to_string(),
-                node_id: String::new(),
-                node_name: String::new(),
-                port_type: String::new(),
-                speed_mbps: 0,
                 transfer_id: transfer_id.clone(),
-                sender_name: String::new(),
                 file_name: file_item.name.clone(),
                 file_size,
                 total_chunks,
-                chunk_index: 0,
-                offset: 0,
-                length: 0,
-                lane_index: 0,
-                lane_name: String::new(),
                 expected_sha256: expected_sha256.clone(),
-                lanes: Vec::new(),
+                ..Default::default()
             };
 
             let _ = send_wire_command(&mut ctrl_stream, &fin_cmd);
@@ -1884,6 +2060,8 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                 ((file_size as f64 / (1024.0 * 1024.0)) / duration_secs * 10.0).round() / 10.0;
 
             if let Ok(mut st) = engine.lock() {
+                st.batch_completed_files = st.batch_completed_files.saturating_add(1);
+                st.batch_completed_bytes = st.batch_completed_bytes.saturating_add(file_size);
                 if let Some(act) = st.active_transfer.take() {
                     let cables_used = act
                         .lanes
@@ -1915,6 +2093,11 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
 
         if let Ok(mut st) = engine.lock() {
             st.selected_files.clear();
+            st.transfer_queue.clear();
+            st.batch_completed_files = 0;
+            st.batch_completed_bytes = 0;
+            st.batch_total_files = 0;
+            st.batch_total_bytes = 0;
         }
     });
 
@@ -2009,8 +2192,21 @@ async fn pick_files_native() -> Vec<SelectedFileItem> {
 
     let engine = get_engine();
     if let Ok(mut st) = engine.lock() {
-        for p in paths {
-            collect_files_from_path(&p, &mut st.selected_files);
+        let is_sending = st
+            .active_transfer
+            .as_ref()
+            .map(|a| a.direction == "Sending")
+            .unwrap_or(false);
+        if is_sending {
+            let mut newly_added = Vec::new();
+            for p in paths {
+                collect_files_from_path(&p, &mut newly_added);
+            }
+            enqueue_files_into_active_transfer(&mut st, newly_added);
+        } else {
+            for p in paths {
+                collect_files_from_path(&p, &mut st.selected_files);
+            }
         }
         return st.selected_files.clone();
     }
@@ -2025,8 +2221,21 @@ async fn pick_folder_native() -> Vec<SelectedFileItem> {
 
     let engine = get_engine();
     if let Ok(mut st) = engine.lock() {
-        for p in paths {
-            collect_files_from_path(&p, &mut st.selected_files);
+        let is_sending = st
+            .active_transfer
+            .as_ref()
+            .map(|a| a.direction == "Sending")
+            .unwrap_or(false);
+        if is_sending {
+            let mut newly_added = Vec::new();
+            for p in paths {
+                collect_files_from_path(&p, &mut newly_added);
+            }
+            enqueue_files_into_active_transfer(&mut st, newly_added);
+        } else {
+            for p in paths {
+                collect_files_from_path(&p, &mut st.selected_files);
+            }
         }
         return st.selected_files.clone();
     }
@@ -2157,18 +2366,7 @@ async fn connect_peer_by_ip(target_ip: String) -> Result<PeerDeviceInfo, String>
             node_name: local_name,
             port_type,
             speed_mbps,
-            transfer_id: String::new(),
-            sender_name: String::new(),
-            file_name: String::new(),
-            file_size: 0,
-            total_chunks: 0,
-            chunk_index: 0,
-            offset: 0,
-            length: 0,
-            lane_index: 0,
-            lane_name: String::new(),
-            expected_sha256: String::new(),
-            lanes: Vec::new(),
+            ..Default::default()
         };
 
         send_wire_command(&mut stream, &hello).map_err(|e| e.to_string())?;
@@ -2212,6 +2410,11 @@ fn cancel_active_transfer() {
     if let Ok(mut st) = get_engine().lock() {
         st.cancel_flag.store(true, Ordering::SeqCst);
         st.active_transfer = None;
+        st.transfer_queue.clear();
+        st.batch_completed_files = 0;
+        st.batch_completed_bytes = 0;
+        st.batch_total_files = 0;
+        st.batch_total_bytes = 0;
     }
 }
 
@@ -2416,8 +2619,21 @@ pub fn run() {
                     }) = event
                     {
                         if let Ok(mut st) = get_engine().lock() {
-                            for p in paths {
-                                collect_files_from_path(p, &mut st.selected_files);
+                            let is_sending = st
+                                .active_transfer
+                                .as_ref()
+                                .map(|a| a.direction == "Sending")
+                                .unwrap_or(false);
+                            if is_sending {
+                                let mut newly_added = Vec::new();
+                                for p in paths {
+                                    collect_files_from_path(p, &mut newly_added);
+                                }
+                                enqueue_files_into_active_transfer(&mut st, newly_added);
+                            } else {
+                                for p in paths {
+                                    collect_files_from_path(p, &mut st.selected_files);
+                                }
                             }
                         }
                     }
