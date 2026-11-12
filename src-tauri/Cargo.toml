@@ -1,6 +1,6 @@
 [package]
 name = "ether_connected_ballistic_files"
-version = "0.1.0"
+version = "0.1.1"
 description = "Hypersonic Multi-Link Peer-to-Peer File Acceleration over Ethernet"
 authors = ["voiceline-diskrep"]
 edition = "2021"

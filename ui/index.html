@@ -861,7 +861,7 @@
         <div class="settings-row">
           <div>
             <div class="settings-label-title">Application Updates</div>
-            <div class="settings-label-desc" id="updateStatusText">Version 0.1.0</div>
+            <div class="settings-label-desc" id="updateStatusText">Version 0.1.1</div>
           </div>
           <button class="btn" id="btnCheckUpdates" type="button">Check for Updates</button>
         </div>
@@ -968,7 +968,8 @@
         ? `MULTI-CABLE BONDED CONNECTION (${p.links.length} WIRES)`
         : 'DIRECT WIRE CONNECTION ESTABLISHED';
       peerHeadline.textContent = `I found a connection from ${snap.local_device_name} and ${p.node_name}`;
-      peerSubtext.textContent = `Active Cable Path: ${linkSummary} • Combined Speed: ${p.combined_speed_mbps} Mbps (${p.combined_max_mbs} MB/s max) • Peer IP: ${p.links[0].peer_ip}`;
+      const peerIps = p.links.map(l => l.peer_ip).join(', ');
+      peerSubtext.textContent = `Active Cable Path: ${linkSummary} • Combined Speed: ${p.combined_speed_mbps} Mbps (${p.combined_max_mbs} MB/s max) • Peer IP${p.links.length > 1 ? 's' : ''}: ${peerIps}`;
     } else if (connectedCables.length > 0) {
       peerBanner.classList.remove('connected');
       refreshBtn.classList.remove('btn-inverted');
@@ -986,8 +987,11 @@
 
     // 2. Render Real Physical Wired Ports
     const combinedHeader = document.getElementById('combinedSpeedHeader');
-    if (snap.total_bonded_speed_mbps > 0) {
-      combinedHeader.textContent = `Active Wire Capacity: ${snap.total_bonded_speed_mbps} Mbps (${snap.total_bonded_max_mbs} MB/s)`;
+    if (peers.length > 0) {
+      const p = peers[0];
+      combinedHeader.textContent = `Active Wire Capacity: ${p.combined_speed_mbps} Mbps (${p.combined_max_mbs} MB/s) • ${p.links.length} Bonded Link${p.links.length > 1 ? 's' : ''}`;
+    } else if (snap.total_bonded_speed_mbps > 0) {
+      combinedHeader.textContent = `Local Wire Capacity: ${snap.total_bonded_speed_mbps} Mbps (${snap.total_bonded_max_mbs} MB/s) (Waiting for peer)`;
     } else {
       combinedHeader.textContent = 'Active Wire Capacity: 0 bps (No Cable Plugged In)';
     }
@@ -1178,10 +1182,11 @@
         ctx.moveTo(0, yCenter + 14); ctx.lineTo(w, yCenter + 14);
         ctx.stroke();
 
-        ctx.fillStyle = '#FFFFFF';
+        ctx.fillStyle = lane.active === false ? '#666666' : '#FFFFFF';
         ctx.font = 'bold 10.5px monospace';
+        const statusTag = lane.active === false ? ' [INACTIVE]' : '';
         ctx.fillText(
-          `WIRE ${i + 1}: ${lane.port_type.toUpperCase()} (${lane.link_speed_mbps} Mbps) — ${formatBytes(lane.bytes_sent)} (${lane.chunks_sent} blk)`,
+          `WIRE ${i + 1}: ${lane.port_type.toUpperCase()} (${lane.link_speed_mbps} Mbps) — ${formatBytes(lane.bytes_sent)} (${lane.chunks_sent} blk)${statusTag}`,
           10,
           yCenter - 19
         );
@@ -1191,6 +1196,7 @@
         for (let p of particles) {
           const laneIdx = p.idx % laneCount;
           const lane = lanes[laneIdx];
+          if (lane.active === false) continue;
           const yCenter = (laneIdx + 0.5) * laneH;
           const speedScale = Math.max(0.8, Math.min(3.0, (lane.link_speed_mbps || 100) / 100));
 

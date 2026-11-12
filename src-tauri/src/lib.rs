@@ -11,11 +11,11 @@ use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use tauri::{Manager, Window};
 
-const CURRENT_VERSION: &str = "0.1.0";
+const CURRENT_VERSION: &str = "0.1.1";
 const GITHUB_REPO: &str = "voiceline-diskrep/EtherConnectedBallisticFiles";
 const DISCOVERY_UDP_PORT: u16 = 45678;
 const TRANSFER_TCP_PORT: u16 = 45679;
-const CHUNK_SIZE: usize = 512 * 1024; // 512 KB per stripe chunk
+const CHUNK_SIZE: usize = 4 * 1024 * 1024; // 4 MB per stripe chunk
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct WiredCableInfo {
@@ -41,6 +41,8 @@ pub struct WiredCableInfo {
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct PeerLinkInfo {
     pub local_interface_id: String,
+    #[serde(default)]
+    pub local_if_index: u32,
     pub local_interface_name: String,
     pub port_type: String,
     pub local_ip: String,
@@ -487,57 +489,68 @@ fn refresh_cables_native(state: &mut EngineState) {
 // REAL PEER DISCOVERY ENGINE (UDP BEACON + ARP NEIGHBOR UNICAST + TCP PROBE)
 // ============================================================================
 
-fn register_discovered_peer(state: &mut EngineState, pkt: BeaconPacket, peer_ip_actual: String) {
-    if pkt.node_id == state.node_id {
-        return; // Never register ourselves
+fn find_cable_for_peer(
+    cables: &[WiredCableInfo],
+    peer_ip: &str,
+    local_ip_hint: Option<&str>,
+) -> Option<WiredCableInfo> {
+    if let Some(lip) = local_ip_hint {
+        if !lip.is_empty() && lip != "0.0.0.0" {
+            if let Some(c) = cables
+                .iter()
+                .find(|c| c.is_connected && c.ip_address.as_deref() == Some(lip))
+            {
+                return Some(c.clone());
+            }
+        }
     }
 
-    // Match which local wired cable is on the same subnet as peer_ip_actual
-    let peer_ipv4: Ipv4Addr = match peer_ip_actual.parse() {
-        Ok(ip) => ip,
-        Err(_) => return,
-    };
-
-    let mut matched_cable: Option<WiredCableInfo> = None;
-    for cable in &state.cables {
-        if !cable.is_connected {
-            continue;
+    if let Ok(peer_ipv4) = peer_ip.parse::<Ipv4Addr>() {
+        // 1. Check ARP neighbor table per interface FIRST so two APIPA (169.254.0.0/16) cables stay distinct
+        #[cfg(target_os = "windows")]
+        for cable in cables {
+            if !cable.is_connected {
+                continue;
+            }
+            if query_arp_neighbors_for_interface(cable.if_index).contains(&peer_ipv4) {
+                return Some(cable.clone());
+            }
         }
-        if let Some(ref lip_str) = cable.ip_address {
-            if let Ok(lip) = lip_str.parse::<Ipv4Addr>() {
-                let mask = if cable.prefix_len == 0 {
-                    0
-                } else {
-                    !0u32 << (32 - cable.prefix_len.min(32))
-                };
-                if (u32::from(lip) & mask) == (u32::from(peer_ipv4) & mask) {
-                    matched_cable = Some(cable.clone());
-                    break;
+
+        // 2. Fallback to subnet match
+        for cable in cables {
+            if !cable.is_connected {
+                continue;
+            }
+            if let Some(ref lip_str) = cable.ip_address {
+                if let Ok(lip) = lip_str.parse::<Ipv4Addr>() {
+                    let mask = if cable.prefix_len == 0 {
+                        0
+                    } else {
+                        !0u32 << (32 - cable.prefix_len.min(32))
+                    };
+                    if (u32::from(lip) & mask) == (u32::from(peer_ipv4) & mask) {
+                        return Some(cable.clone());
+                    }
                 }
             }
         }
     }
 
-    // Also check if peer_ip_actual is in the ARP neighbor table of any connected wired cable
-    #[cfg(target_os = "windows")]
-    if matched_cable.is_none() {
-        for cable in &state.cables {
-            if !cable.is_connected {
-                continue;
-            }
-            if query_arp_neighbors_for_interface(cable.if_index).contains(&peer_ipv4) {
-                matched_cable = Some(cable.clone());
-                break;
-            }
-        }
+    // 3. Fallback to first connected cable (e.g. cross-subnet static IP)
+    cables.iter().find(|c| c.is_connected).cloned()
+}
+
+fn register_discovered_peer(state: &mut EngineState, pkt: BeaconPacket, peer_ip_actual: String) {
+    if pkt.node_id == state.node_id {
+        return; // Never register ourselves
     }
 
-    // If no subnet match (e.g., cross-subnet static IP on connected cable), pick first connected cable
-    if matched_cable.is_none() {
-        matched_cable = state.cables.iter().find(|c| c.is_connected).cloned();
+    if peer_ip_actual.parse::<Ipv4Addr>().is_err() {
+        return;
     }
 
-    let Some(cable) = matched_cable else {
+    let Some(cable) = find_cable_for_peer(&state.cables, &peer_ip_actual, None) else {
         return; // Ignore peers that came over Wi-Fi! Only register peers on physical wired cables!
     };
 
@@ -551,6 +564,7 @@ fn register_discovered_peer(state: &mut EngineState, pkt: BeaconPacket, peer_ip_
     let ts = now_ms();
     let link = PeerLinkInfo {
         local_interface_id: cable.id.clone(),
+        local_if_index: cable.if_index,
         local_interface_name: cable.name.clone(),
         port_type: cable.port_type.clone(),
         local_ip,
@@ -572,11 +586,10 @@ fn register_discovered_peer(state: &mut EngineState, pkt: BeaconPacket, peer_ip_
     entry.node_name = pkt.node_name;
     entry.last_seen_ms = ts;
 
-    if let Some(existing) = entry
-        .links
-        .iter_mut()
-        .find(|l| l.local_interface_id == link.local_interface_id || l.peer_ip == link.peer_ip)
-    {
+    if let Some(existing) = entry.links.iter_mut().find(|l| {
+        (l.local_interface_id == link.local_interface_id && l.peer_ip == link.peer_ip)
+            || l.local_interface_id == link.local_interface_id
+    }) {
         *existing = link;
     } else {
         entry.links.push(link);
@@ -631,22 +644,29 @@ fn spawn_background_networking() {
                     if pkt.magic == "ECBF_V2" {
                         let peer_ip = src_addr.ip().to_string();
                         let mut reply_pong: Option<BeaconPacket> = None;
-                        let mut tcp_reverse_hello: Option<(String, String, String, String, u64)> =
+                        let mut tcp_reverse_hello: Option<(String, Option<u32>, String, String, String, u64)> =
                             None;
 
                         if let Ok(mut st) = engine_udp.lock() {
                             if pkt.node_id != st.node_id {
-                                let active_cable = st.cables.iter().find(|c| c.is_connected);
+                                let active_cable = find_cable_for_peer(&st.cables, &peer_ip, None);
                                 let lip = active_cable
+                                    .as_ref()
                                     .and_then(|c| c.ip_address.clone())
                                     .unwrap_or_default();
+                                let if_idx = active_cable.as_ref().map(|c| c.if_index);
                                 let ptype = active_cable
+                                    .as_ref()
                                     .map(|c| c.port_type.clone())
                                     .unwrap_or_else(|| "Ethernet Cable".to_string());
                                 let ifname = active_cable
+                                    .as_ref()
                                     .map(|c| c.name.clone())
                                     .unwrap_or_else(|| "Ethernet".to_string());
-                                let spd = active_cable.map(|c| c.link_speed_mbps).unwrap_or(100);
+                                let spd = active_cable
+                                    .as_ref()
+                                    .map(|c| c.link_speed_mbps)
+                                    .unwrap_or(100);
 
                                 if pkt.kind == "BEACON" {
                                     // Prepare unicast PONG reply AND reverse TCP HELLO so the sender immediately discovers us
@@ -664,6 +684,7 @@ fn spawn_background_networking() {
                                     });
                                     tcp_reverse_hello = Some((
                                         lip,
+                                        if_idx,
                                         st.node_id.clone(),
                                         st.device_name.clone(),
                                         ptype,
@@ -682,12 +703,16 @@ fn spawn_background_networking() {
                             }
                         }
 
-                        if let Some((lip, nid, nname, ptype, spd)) = tcp_reverse_hello {
+                        if let Some((lip, if_idx, nid, nname, ptype, spd)) = tcp_reverse_hello {
                             let pip = peer_ip.clone();
                             std::thread::spawn(move || {
-                                if let Ok(mut stream) =
-                                    connect_bound_tcp_fast(&lip, &pip, TRANSFER_TCP_PORT, 350)
-                                {
+                                if let Ok(mut stream) = connect_bound_tcp_fast(
+                                    &lip,
+                                    &pip,
+                                    TRANSFER_TCP_PORT,
+                                    350,
+                                    if_idx,
+                                ) {
                                     let hello = WireCommand {
                                         cmd: "HELLO".to_string(),
                                         node_id: nid,
@@ -823,11 +848,16 @@ fn spawn_background_networking() {
                             let nname = node_name.clone();
                             let ptype = cable.port_type.clone();
                             let spd = cable.link_speed_mbps;
+                            let if_idx = cable.if_index;
 
                             std::thread::spawn(move || {
-                                if let Ok(mut stream) =
-                                    connect_bound_tcp_fast(&lip_str, &nip_str, TRANSFER_TCP_PORT, 350)
-                                {
+                                if let Ok(mut stream) = connect_bound_tcp_fast(
+                                    &lip_str,
+                                    &nip_str,
+                                    TRANSFER_TCP_PORT,
+                                    350,
+                                    Some(if_idx),
+                                ) {
                                     let hello = WireCommand {
                                         cmd: "HELLO".to_string(),
                                         node_id: nid,
@@ -936,7 +966,10 @@ struct WireCommand {
     lanes: Vec<LaneProgress>,
 }
 
-fn read_wire_command(stream: &mut TcpStream) -> std::io::Result<WireCommand> {
+fn read_wire_command_into(
+    stream: &mut TcpStream,
+    header_buf: &mut Vec<u8>,
+) -> std::io::Result<WireCommand> {
     let mut len_buf = [0u8; 4];
     stream.read_exact(&mut len_buf)?;
     let header_len = u32::from_be_bytes(len_buf) as usize;
@@ -946,10 +979,15 @@ fn read_wire_command(stream: &mut TcpStream) -> std::io::Result<WireCommand> {
             "Invalid header length",
         ));
     }
-    let mut header_buf = vec![0u8; header_len];
-    stream.read_exact(&mut header_buf)?;
-    serde_json::from_slice(&header_buf)
+    header_buf.resize(header_len, 0);
+    stream.read_exact(&mut header_buf[..header_len])?;
+    serde_json::from_slice(&header_buf[..header_len])
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+}
+
+fn read_wire_command(stream: &mut TcpStream) -> std::io::Result<WireCommand> {
+    let mut header_buf = Vec::with_capacity(512);
+    read_wire_command_into(stream, &mut header_buf)
 }
 
 fn send_wire_command(stream: &mut TcpStream, cmd: &WireCommand) -> std::io::Result<()> {
@@ -964,26 +1002,42 @@ fn send_wire_command(stream: &mut TcpStream, cmd: &WireCommand) -> std::io::Resu
 struct IncomingFileTrack {
     part_path: PathBuf,
     final_path: PathBuf,
-    file: File,
+    file: Mutex<File>,
     started_at: Instant,
+    total_bytes: u64,
+    total_chunks: u64,
+    bytes_received: AtomicU64,
+    chunks_received: AtomicU64,
+    last_ui_sync_ms: AtomicU64,
+    lane_bytes: [AtomicU64; 16],
+    lane_chunks: [AtomicU64; 16],
 }
 
-static INCOMING_FILES: OnceLock<Mutex<HashMap<String, Arc<Mutex<IncomingFileTrack>>>>> =
-    OnceLock::new();
+static INCOMING_FILES: OnceLock<Mutex<HashMap<String, Arc<IncomingFileTrack>>>> = OnceLock::new();
 
-fn get_incoming_files() -> &'static Mutex<HashMap<String, Arc<Mutex<IncomingFileTrack>>>> {
+fn get_incoming_files() -> &'static Mutex<HashMap<String, Arc<IncomingFileTrack>>> {
     INCOMING_FILES.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
 fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineState>>) {
     let _ = stream.set_nodelay(true);
+    {
+        let sock_ref = socket2::SockRef::from(&stream);
+        let _ = sock_ref.set_recv_buffer_size(4 * 1024 * 1024);
+        let _ = sock_ref.set_send_buffer_size(4 * 1024 * 1024);
+    }
     let peer_ip = stream
         .peer_addr()
         .map(|a| a.ip().to_string())
         .unwrap_or_default();
+    let local_ip_hint = stream.local_addr().ok().map(|a| a.ip().to_string());
+
+    let mut header_buf: Vec<u8> = Vec::with_capacity(512);
+    let mut payload_buf: Vec<u8> = Vec::new();
+    let mut cached_track: Option<(String, Arc<IncomingFileTrack>)> = None;
 
     loop {
-        let req = match read_wire_command(&mut stream) {
+        let req = match read_wire_command_into(&mut stream, &mut header_buf) {
             Ok(r) => r,
             Err(_) => break,
         };
@@ -1013,7 +1067,9 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                 if let Ok(mut st) = engine.lock() {
                     reply.node_id = st.node_id.clone();
                     reply.node_name = st.device_name.clone();
-                    if let Some(c) = st.cables.iter().find(|c| c.is_connected) {
+                    if let Some(c) =
+                        find_cable_for_peer(&st.cables, &peer_ip, local_ip_hint.as_deref())
+                    {
                         reply.port_type = c.port_type.clone();
                         reply.speed_mbps = c.link_speed_mbps;
                     }
@@ -1060,12 +1116,19 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                     if let Ok(mut map) = get_incoming_files().lock() {
                         map.insert(
                             req.transfer_id.clone(),
-                            Arc::new(Mutex::new(IncomingFileTrack {
+                            Arc::new(IncomingFileTrack {
                                 part_path,
                                 final_path,
-                                file,
+                                file: Mutex::new(file),
                                 started_at: Instant::now(),
-                            })),
+                                total_bytes: req.file_size,
+                                total_chunks: req.total_chunks.max(1),
+                                bytes_received: AtomicU64::new(0),
+                                chunks_received: AtomicU64::new(0),
+                                last_ui_sync_ms: AtomicU64::new(0),
+                                lane_bytes: std::array::from_fn(|_| AtomicU64::new(0)),
+                                lane_chunks: std::array::from_fn(|_| AtomicU64::new(0)),
+                            }),
                         );
                     }
 
@@ -1098,73 +1161,125 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                 }
             }
             "CHUNK" => {
-                let mut payload = vec![0u8; req.length];
-                if stream.read_exact(&mut payload).is_err() {
+                if payload_buf.len() < req.length {
+                    payload_buf.resize(req.length, 0);
+                }
+                if req.length > 0 && stream.read_exact(&mut payload_buf[..req.length]).is_err() {
                     break;
                 }
 
-                let track_opt = get_incoming_files()
-                    .lock()
-                    .ok()
-                    .and_then(|m| m.get(&req.transfer_id).cloned());
+                let track_opt = if let Some((ref tid, ref arc)) = cached_track {
+                    if tid == &req.transfer_id {
+                        Some(arc.clone())
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+                .or_else(|| {
+                    let found = get_incoming_files()
+                        .lock()
+                        .ok()
+                        .and_then(|m| m.get(&req.transfer_id).cloned());
+                    if let Some(ref arc) = found {
+                        cached_track = Some((req.transfer_id.clone(), arc.clone()));
+                    }
+                    found
+                });
 
-                if let Some(track_arc) = track_opt {
-                    let mut elapsed_secs = 0.001;
-                    if let Ok(mut trk) = track_arc.lock() {
-                        let _ = trk.file.seek(SeekFrom::Start(req.offset));
-                        let _ = trk.file.write_all(&payload);
-                        elapsed_secs = trk.started_at.elapsed().as_secs_f64().max(0.001);
+                if let Some(track) = track_opt {
+                    let write_ok = if let Ok(mut f) = track.file.lock() {
+                        f.seek(SeekFrom::Start(req.offset)).is_ok()
+                            && (req.length == 0 || f.write_all(&payload_buf[..req.length]).is_ok())
+                    } else {
+                        false
+                    };
+                    if !write_ok {
+                        break;
                     }
 
-                    if let Ok(mut st) = engine.lock() {
-                        if let Some(ref mut act) = st.active_transfer {
-                            if act.transfer_id == req.transfer_id {
-                                act.transferred_bytes = act
-                                    .transferred_bytes
-                                    .saturating_add(req.length as u64)
-                                    .min(act.total_bytes);
-                                act.completed_chunks = act.completed_chunks.saturating_add(1);
-                                act.progress_pct = if act.total_bytes > 0 {
-                                    ((act.transferred_bytes as f64 / act.total_bytes as f64)
-                                        * 1000.0)
-                                        .round()
-                                        / 10.0
-                                } else {
-                                    100.0
-                                };
-                                let mbs = (act.transferred_bytes as f64 / (1024.0 * 1024.0))
-                                    / elapsed_secs;
-                                act.speed_mbs = (mbs * 10.0).round() / 10.0;
-                                act.speed_mbps = (mbs * 8.0 * 10.0).round() / 10.0;
-                                let rem_mbs = ((act.total_bytes.saturating_sub(act.transferred_bytes))
-                                    as f64)
-                                    / (1024.0 * 1024.0);
-                                act.eta_seconds = if mbs > 0.1 {
-                                    (rem_mbs / mbs).ceil() as u64
-                                } else {
-                                    0
-                                };
+                    let total_rx = track
+                        .bytes_received
+                        .fetch_add(req.length as u64, Ordering::Relaxed)
+                        .saturating_add(req.length as u64)
+                        .min(track.total_bytes);
+                    let total_chk = track
+                        .chunks_received
+                        .fetch_add(1, Ordering::Relaxed)
+                        .saturating_add(1);
+                    if req.lane_index < 16 {
+                        track.lane_bytes[req.lane_index]
+                            .fetch_add(req.length as u64, Ordering::Relaxed);
+                        track.lane_chunks[req.lane_index].fetch_add(1, Ordering::Relaxed);
+                    }
 
-                                let cell = ((req.chunk_index as usize) * 24)
-                                    / (act.total_chunks.max(1) as usize);
-                                if cell < 24 {
-                                    act.chunk_states[cell] = (req.lane_index as u8) + 1;
-                                }
-                                if let Some(lane) = act.lanes.get_mut(req.lane_index) {
-                                    lane.bytes_sent =
-                                        lane.bytes_sent.saturating_add(req.length as u64);
-                                    lane.chunks_sent = lane.chunks_sent.saturating_add(1);
+                    let now = now_ms();
+                    let prev_sync = track.last_ui_sync_ms.load(Ordering::Relaxed);
+                    let should_sync = now.saturating_sub(prev_sync) >= 100
+                        || total_chk >= track.total_chunks;
+                    if should_sync
+                        && track
+                            .last_ui_sync_ms
+                            .compare_exchange(prev_sync, now, Ordering::Relaxed, Ordering::Relaxed)
+                            .is_ok()
+                    {
+                        let elapsed_secs = track.started_at.elapsed().as_secs_f64().max(0.001);
+                        if let Ok(mut st) = engine.lock() {
+                            if let Some(ref mut act) = st.active_transfer {
+                                if act.transfer_id == req.transfer_id {
+                                    act.transferred_bytes = total_rx;
+                                    act.completed_chunks = total_chk;
+                                    act.progress_pct = if act.total_bytes > 0 {
+                                        ((total_rx as f64 / act.total_bytes as f64) * 1000.0)
+                                            .round()
+                                            / 10.0
+                                    } else {
+                                        100.0
+                                    };
+                                    let mbs =
+                                        (total_rx as f64 / (1024.0 * 1024.0)) / elapsed_secs;
+                                    act.speed_mbs = (mbs * 10.0).round() / 10.0;
+                                    act.speed_mbps = (mbs * 8.0 * 10.0).round() / 10.0;
+                                    let rem_mbs = ((act.total_bytes.saturating_sub(total_rx))
+                                        as f64)
+                                        / (1024.0 * 1024.0);
+                                    act.eta_seconds = if mbs > 0.1 {
+                                        (rem_mbs / mbs).ceil() as u64
+                                    } else {
+                                        0
+                                    };
+
+                                    let cell = ((req.chunk_index as usize) * 24)
+                                        / (act.total_chunks.max(1) as usize);
+                                    if cell < 24 {
+                                        act.chunk_states[cell] = (req.lane_index as u8) + 1;
+                                    }
+                                    for (li, lane) in act.lanes.iter_mut().enumerate() {
+                                        if li < 16 {
+                                            lane.bytes_sent =
+                                                track.lane_bytes[li].load(Ordering::Relaxed);
+                                            lane.chunks_sent =
+                                                track.lane_chunks[li].load(Ordering::Relaxed);
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-
-                    let _ = stream.write_all(b"K");
-                    let _ = stream.flush();
                 } else {
-                    let _ = stream.write_all(b"E");
                     break;
                 }
+            }
+            "LANE_DONE" => {
+                if let Some((_, ref track)) = cached_track {
+                    if let Ok(mut f) = track.file.lock() {
+                        let _ = f.flush();
+                    }
+                }
+                let _ = stream.write_all(b"OK");
+                let _ = stream.flush();
+                break;
             }
             "FINISH_TRANSFER" => {
                 if let Ok(mut st) = engine.lock() {
@@ -1180,14 +1295,14 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                     .ok()
                     .and_then(|mut m| m.remove(&req.transfer_id));
 
-                if let Some(track_arc) = track_opt {
-                    if let Ok(mut trk) = track_arc.lock() {
-                        let _ = trk.file.flush();
-                        let _ = trk.file.seek(SeekFrom::Start(0));
+                if let Some(track) = track_opt {
+                    if let Ok(mut f) = track.file.lock() {
+                        let _ = f.flush();
+                        let _ = f.seek(SeekFrom::Start(0));
 
                         let mut hasher = Sha256::new();
-                        let mut buf = vec![0u8; 1024 * 1024];
-                        while let Ok(n) = trk.file.read(&mut buf) {
+                        let mut buf = vec![0u8; 4 * 1024 * 1024];
+                        while let Ok(n) = f.read(&mut buf) {
                             if n == 0 {
                                 break;
                             }
@@ -1197,9 +1312,9 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                         let verified = req.expected_sha256.is_empty()
                             || computed_sha256 == req.expected_sha256;
 
-                        drop(trk.file.try_clone());
-                        let _ = fs::rename(&trk.part_path, &trk.final_path);
-                        let duration_secs = trk.started_at.elapsed().as_secs_f64().max(0.01);
+                        drop(f.try_clone());
+                        let _ = fs::rename(&track.part_path, &track.final_path);
+                        let duration_secs = track.started_at.elapsed().as_secs_f64().max(0.01);
 
                         if let Ok(mut st) = engine.lock() {
                             if let Some(act) = st.active_transfer.take() {
@@ -1223,7 +1338,7 @@ fn handle_incoming_tcp_client(mut stream: TcpStream, engine: Arc<Mutex<EngineSta
                                         peer_name: act.peer_name,
                                         file_name: act.file_name,
                                         saved_path: Some(
-                                            trk.final_path.to_string_lossy().to_string(),
+                                            track.final_path.to_string_lossy().to_string(),
                                         ),
                                         total_bytes: act.total_bytes,
                                         avg_speed_mbs: avg_mbs,
@@ -1257,6 +1372,7 @@ fn connect_bound_tcp_fast(
     peer_ip: &str,
     peer_port: u16,
     timeout_ms: u64,
+    if_index: Option<u32>,
 ) -> std::io::Result<TcpStream> {
     let peer_addr: SocketAddr = format!("{}:{}", peer_ip, peer_port)
         .parse()
@@ -1266,6 +1382,25 @@ fn connect_bound_tcp_fast(
     let _ = socket.set_tcp_nodelay(true);
     let _ = socket.set_send_buffer_size(4 * 1024 * 1024);
     let _ = socket.set_recv_buffer_size(4 * 1024 * 1024);
+
+    #[cfg(target_os = "windows")]
+    if let Some(idx) = if_index {
+        if idx > 0 {
+            use std::os::windows::io::AsRawSocket;
+            use windows::Win32::Networking::WinSock::{
+                setsockopt, IPPROTO_IP, IP_UNICAST_IF, SOCKET,
+            };
+            let val = idx.to_be_bytes();
+            unsafe {
+                let _ = setsockopt(
+                    SOCKET(socket.as_raw_socket() as usize),
+                    IPPROTO_IP.0,
+                    IP_UNICAST_IF as i32,
+                    Some(&val),
+                );
+            }
+        }
+    }
 
     if let Ok(lip) = local_ip.parse::<Ipv4Addr>() {
         if !lip.is_unspecified() {
@@ -1282,8 +1417,13 @@ fn connect_bound_tcp_fast(
     Ok(std_stream)
 }
 
-fn connect_bound_tcp(local_ip: &str, peer_ip: &str, peer_port: u16) -> std::io::Result<TcpStream> {
-    let std_stream = connect_bound_tcp_fast(local_ip, peer_ip, peer_port, 4000)?;
+fn connect_bound_tcp(
+    local_ip: &str,
+    peer_ip: &str,
+    peer_port: u16,
+    if_index: Option<u32>,
+) -> std::io::Result<TcpStream> {
+    let std_stream = connect_bound_tcp_fast(local_ip, peer_ip, peer_port, 4000, if_index)?;
     let _ = std_stream.set_read_timeout(Some(Duration::from_secs(15)));
     let _ = std_stream.set_write_timeout(Some(Duration::from_secs(15)));
     Ok(std_stream)
@@ -1387,6 +1527,7 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                 &primary_link.local_ip,
                 &primary_link.peer_ip,
                 primary_link.peer_tcp_port,
+                Some(primary_link.local_if_index),
             ) {
                 Ok(s) => s,
                 Err(e) => {
@@ -1440,6 +1581,15 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
             let started_at = Instant::now();
             let next_chunk = Arc::new(AtomicU64::new(0));
             let worker_failed = Arc::new(AtomicBool::new(false));
+            let total_sent_bytes = Arc::new(AtomicU64::new(0));
+            let total_sent_chunks = Arc::new(AtomicU64::new(0));
+            let last_ui_sync_ms = Arc::new(AtomicU64::new(0));
+            let lane_bytes: Arc<[AtomicU64; 16]> =
+                Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
+            let lane_chunks: Arc<[AtomicU64; 16]> =
+                Arc::new(std::array::from_fn(|_| AtomicU64::new(0)));
+            let single_lane = peer.links.len() == 1;
+            let in_flight_sha256: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
             let mut handles = Vec::new();
 
             for (lane_idx, link) in peer.links.iter().cloned().enumerate() {
@@ -1450,6 +1600,12 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                 let cancel_clone = cancel_flag.clone();
                 let pause_clone = pause_flag.clone();
                 let eng_clone = engine.clone();
+                let total_bytes_atomic = total_sent_bytes.clone();
+                let total_chunks_atomic = total_sent_chunks.clone();
+                let sync_ms_atomic = last_ui_sync_ms.clone();
+                let lane_bytes_clone = lane_bytes.clone();
+                let lane_chunks_clone = lane_chunks.clone();
+                let sha_out_clone = in_flight_sha256.clone();
 
                 let handle = std::thread::spawn(move || {
                     let mut file = match File::open(&path_clone) {
@@ -1460,19 +1616,56 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                         }
                     };
 
-                    let mut stream =
-                        match connect_bound_tcp(&link.local_ip, &link.peer_ip, link.peer_tcp_port) {
-                            Ok(s) => s,
-                            Err(_) => {
-                                // If secondary cable fails, primary cable continues taking chunks
-                                if lane_idx == 0 {
-                                    failed_clone.store(true, Ordering::SeqCst);
+                    let mut stream = match connect_bound_tcp(
+                        &link.local_ip,
+                        &link.peer_ip,
+                        link.peer_tcp_port,
+                        Some(link.local_if_index),
+                    ) {
+                        Ok(s) => s,
+                        Err(_) => {
+                            // If secondary cable fails, mark lane inactive so UI & remaining lanes reflect it
+                            if lane_idx == 0 {
+                                failed_clone.store(true, Ordering::SeqCst);
+                            } else if let Ok(mut st) = eng_clone.lock() {
+                                if let Some(ref mut act) = st.active_transfer {
+                                    if act.transfer_id == tid_clone {
+                                        if let Some(lane) = act.lanes.get_mut(lane_idx) {
+                                            lane.active = false;
+                                        }
+                                    }
                                 }
-                                return;
                             }
-                        };
+                            return;
+                        }
+                    };
 
-                    let mut buf = vec![0u8; CHUNK_SIZE];
+                    // Pre-allocate reusable frame buffer: [4-byte hdr_len][JSON header][chunk_bytes]
+                    let mut frame_buf: Vec<u8> = Vec::with_capacity(4 + 512 + CHUNK_SIZE);
+                    let mut stream_hasher = if single_lane {
+                        Some(Sha256::new())
+                    } else {
+                        None
+                    };
+                    let mut chunk_cmd = WireCommand {
+                        cmd: "CHUNK".to_string(),
+                        node_id: String::new(),
+                        node_name: String::new(),
+                        port_type: String::new(),
+                        speed_mbps: 0,
+                        transfer_id: tid_clone.clone(),
+                        sender_name: String::new(),
+                        file_name: String::new(),
+                        file_size,
+                        total_chunks,
+                        chunk_index: 0,
+                        offset: 0,
+                        length: 0,
+                        lane_index: lane_idx,
+                        lane_name: link.local_interface_name.clone(),
+                        expected_sha256: String::new(),
+                        lanes: Vec::new(),
+                    };
 
                     loop {
                         if cancel_clone.load(Ordering::SeqCst) || failed_clone.load(Ordering::SeqCst)
@@ -1495,90 +1688,128 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                         let rem = file_size.saturating_sub(offset) as usize;
                         let to_read = rem.min(CHUNK_SIZE);
 
+                        chunk_cmd.chunk_index = idx;
+                        chunk_cmd.offset = offset;
+                        chunk_cmd.length = to_read;
+
+                        frame_buf.clear();
+                        frame_buf.resize(4, 0);
+                        if serde_json::to_writer(&mut frame_buf, &chunk_cmd).is_err() {
+                            failed_clone.store(true, Ordering::SeqCst);
+                            break;
+                        }
+                        let hdr_len = (frame_buf.len() - 4) as u32;
+                        frame_buf[..4].copy_from_slice(&hdr_len.to_be_bytes());
+
+                        let payload_start = frame_buf.len();
                         if to_read > 0 {
+                            frame_buf.resize(payload_start + to_read, 0);
                             if file.seek(SeekFrom::Start(offset)).is_err()
-                                || file.read_exact(&mut buf[..to_read]).is_err()
+                                || file
+                                    .read_exact(&mut frame_buf[payload_start..payload_start + to_read])
+                                    .is_err()
                             {
                                 failed_clone.store(true, Ordering::SeqCst);
                                 break;
                             }
+                            if let Some(ref mut hasher) = stream_hasher {
+                                hasher.update(&frame_buf[payload_start..payload_start + to_read]);
+                            }
                         }
 
-                        let chunk_cmd = WireCommand {
-                            cmd: "CHUNK".to_string(),
-                            node_id: String::new(),
-                            node_name: String::new(),
-                            port_type: String::new(),
-                            speed_mbps: 0,
-                            transfer_id: tid_clone.clone(),
-                            sender_name: String::new(),
-                            file_name: String::new(),
-                            file_size,
-                            total_chunks,
-                            chunk_index: idx,
-                            offset,
-                            length: to_read,
-                            lane_index: lane_idx,
-                            lane_name: link.local_interface_name.clone(),
-                            expected_sha256: String::new(),
-                            lanes: Vec::new(),
-                        };
+                        // Pipelined coalesced write — zero per-chunk flush or stop-and-wait ACK
+                        if stream.write_all(&frame_buf).is_err() {
+                            failed_clone.store(true, Ordering::SeqCst);
+                            break;
+                        }
 
-                        if send_wire_command(&mut stream, &chunk_cmd).is_err()
-                            || stream.write_all(&buf[..to_read]).is_err()
-                            || stream.flush().is_err()
+                        let cur_bytes = total_bytes_atomic
+                            .fetch_add(to_read as u64, Ordering::Relaxed)
+                            .saturating_add(to_read as u64)
+                            .min(file_size);
+                        let cur_chunks = total_chunks_atomic
+                            .fetch_add(1, Ordering::Relaxed)
+                            .saturating_add(1);
+                        if lane_idx < 16 {
+                            lane_bytes_clone[lane_idx].fetch_add(to_read as u64, Ordering::Relaxed);
+                            lane_chunks_clone[lane_idx].fetch_add(1, Ordering::Relaxed);
+                        }
+
+                        let now = now_ms();
+                        let prev = sync_ms_atomic.load(Ordering::Relaxed);
+                        let should_sync =
+                            now.saturating_sub(prev) >= 100 || cur_chunks >= total_chunks;
+                        if should_sync
+                            && sync_ms_atomic
+                                .compare_exchange(prev, now, Ordering::Relaxed, Ordering::Relaxed)
+                                .is_ok()
                         {
-                            failed_clone.store(true, Ordering::SeqCst);
-                            break;
-                        }
+                            let elapsed = started_at.elapsed().as_secs_f64().max(0.001);
+                            if let Ok(mut st) = eng_clone.lock() {
+                                if let Some(ref mut act) = st.active_transfer {
+                                    if act.transfer_id == tid_clone {
+                                        act.transferred_bytes = cur_bytes;
+                                        act.completed_chunks = cur_chunks;
+                                        act.progress_pct = if file_size > 0 {
+                                            ((cur_bytes as f64 / file_size as f64) * 1000.0)
+                                                .round()
+                                                / 10.0
+                                        } else {
+                                            100.0
+                                        };
+                                        let mbs =
+                                            (cur_bytes as f64 / (1024.0 * 1024.0)) / elapsed;
+                                        act.speed_mbs = (mbs * 10.0).round() / 10.0;
+                                        act.speed_mbps = (mbs * 8.0 * 10.0).round() / 10.0;
+                                        let rem_mbs = ((file_size.saturating_sub(cur_bytes))
+                                            as f64)
+                                            / (1024.0 * 1024.0);
+                                        act.eta_seconds = if mbs > 0.1 {
+                                            (rem_mbs / mbs).ceil() as u64
+                                        } else {
+                                            0
+                                        };
 
-                        let mut chunk_ack = [0u8; 1];
-                        if stream.read_exact(&mut chunk_ack).is_err() || chunk_ack[0] != b'K' {
-                            failed_clone.store(true, Ordering::SeqCst);
-                            break;
-                        }
-
-                        // Update real-time sender telemetry
-                        let elapsed = started_at.elapsed().as_secs_f64().max(0.001);
-                        if let Ok(mut st) = eng_clone.lock() {
-                            if let Some(ref mut act) = st.active_transfer {
-                                if act.transfer_id == tid_clone {
-                                    act.transferred_bytes = act
-                                        .transferred_bytes
-                                        .saturating_add(to_read as u64)
-                                        .min(file_size);
-                                    act.completed_chunks = act.completed_chunks.saturating_add(1);
-                                    act.progress_pct = if file_size > 0 {
-                                        ((act.transferred_bytes as f64 / file_size as f64) * 1000.0)
-                                            .round()
-                                            / 10.0
-                                    } else {
-                                        100.0
-                                    };
-                                    let mbs =
-                                        (act.transferred_bytes as f64 / (1024.0 * 1024.0)) / elapsed;
-                                    act.speed_mbs = (mbs * 10.0).round() / 10.0;
-                                    act.speed_mbps = (mbs * 8.0 * 10.0).round() / 10.0;
-                                    let rem_mbs = ((file_size.saturating_sub(act.transferred_bytes))
-                                        as f64)
-                                        / (1024.0 * 1024.0);
-                                    act.eta_seconds = if mbs > 0.1 {
-                                        (rem_mbs / mbs).ceil() as u64
-                                    } else {
-                                        0
-                                    };
-
-                                    let cell =
-                                        ((idx as usize) * 24) / (total_chunks.max(1) as usize);
-                                    if cell < 24 {
-                                        act.chunk_states[cell] = (lane_idx as u8) + 1;
-                                    }
-                                    if let Some(lane) = act.lanes.get_mut(lane_idx) {
-                                        lane.bytes_sent =
-                                            lane.bytes_sent.saturating_add(to_read as u64);
-                                        lane.chunks_sent = lane.chunks_sent.saturating_add(1);
+                                        let cell =
+                                            ((idx as usize) * 24) / (total_chunks.max(1) as usize);
+                                        if cell < 24 {
+                                            act.chunk_states[cell] = (lane_idx as u8) + 1;
+                                        }
+                                        for (li, lane) in act.lanes.iter_mut().enumerate() {
+                                            if li < 16 {
+                                                lane.bytes_sent = lane_bytes_clone[li]
+                                                    .load(Ordering::Relaxed);
+                                                lane.chunks_sent = lane_chunks_clone[li]
+                                                    .load(Ordering::Relaxed);
+                                            }
+                                        }
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    // Single end-of-lane handshake to ensure all pipelined chunks are flushed to disk
+                    if !cancel_clone.load(Ordering::SeqCst) && !failed_clone.load(Ordering::SeqCst)
+                    {
+                        chunk_cmd.cmd = "LANE_DONE".to_string();
+                        chunk_cmd.length = 0;
+                        if send_wire_command(&mut stream, &chunk_cmd).is_ok() {
+                            let mut lane_ack = [0u8; 2];
+                            if stream.read_exact(&mut lane_ack).is_err() || &lane_ack != b"OK" {
+                                failed_clone.store(true, Ordering::SeqCst);
+                            }
+                        } else {
+                            failed_clone.store(true, Ordering::SeqCst);
+                        }
+                    }
+
+                    if let Some(hasher) = stream_hasher {
+                        if !cancel_clone.load(Ordering::SeqCst)
+                            && !failed_clone.load(Ordering::SeqCst)
+                        {
+                            if let Ok(mut guard) = sha_out_clone.lock() {
+                                *guard = Some(format!("{:x}", hasher.finalize()));
                             }
                         }
                     }
@@ -1598,24 +1829,30 @@ async fn start_real_transfer(peer_node_id: String) -> Result<String, String> {
                 return;
             }
 
-            // 3. Compute SHA-256 and finalize transfer
+            // 3. Compute SHA-256 (reuse in-flight hash if single lane) and finalize transfer
             if let Ok(mut st) = engine.lock() {
                 if let Some(ref mut act) = st.active_transfer {
                     act.status = "verifying".to_string();
                 }
             }
 
-            let mut expected_sha256 = String::new();
-            if let Ok(mut f) = File::open(&path) {
-                let mut hasher = Sha256::new();
-                let mut b = vec![0u8; 1024 * 1024];
-                while let Ok(n) = f.read(&mut b) {
-                    if n == 0 {
-                        break;
+            let mut expected_sha256 = in_flight_sha256
+                .lock()
+                .ok()
+                .and_then(|mut g| g.take())
+                .unwrap_or_default();
+            if expected_sha256.is_empty() {
+                if let Ok(mut f) = File::open(&path) {
+                    let mut hasher = Sha256::new();
+                    let mut b = vec![0u8; 4 * 1024 * 1024];
+                    while let Ok(n) = f.read(&mut b) {
+                        if n == 0 {
+                            break;
+                        }
+                        hasher.update(&b[..n]);
                     }
-                    hasher.update(&b[..n]);
+                    expected_sha256 = format!("{:x}", hasher.finalize());
                 }
-                expected_sha256 = format!("{:x}", hasher.finalize());
             }
 
             let fin_cmd = WireCommand {
@@ -1887,25 +2124,31 @@ async fn connect_peer_by_ip(target_ip: String) -> Result<PeerDeviceInfo, String>
     }
 
     let engine = get_engine().clone();
-    let (local_node_id, local_name, local_ip, port_type, speed_mbps) = {
+    let (local_node_id, local_name, local_ip, if_index, port_type, speed_mbps) = {
         let st = engine.lock().map_err(|e| e.to_string())?;
-        let active_cable = st.cables.iter().find(|c| c.is_connected);
+        let active_cable = find_cable_for_peer(&st.cables, &ip_trimmed, None);
         (
             st.node_id.clone(),
             st.device_name.clone(),
             active_cable
+                .as_ref()
                 .and_then(|c| c.ip_address.clone())
                 .unwrap_or_default(),
+            active_cable.as_ref().map(|c| c.if_index),
             active_cable
+                .as_ref()
                 .map(|c| c.port_type.clone())
                 .unwrap_or_else(|| "Ethernet Cable".to_string()),
-            active_cable.map(|c| c.link_speed_mbps).unwrap_or(100),
+            active_cable
+                .as_ref()
+                .map(|c| c.link_speed_mbps)
+                .unwrap_or(100),
         )
     };
 
     let ip_clone = ip_trimmed.clone();
     let ack = tokio::task::spawn_blocking(move || -> Result<WireCommand, String> {
-        let mut stream = connect_bound_tcp(&local_ip, &ip_clone, TRANSFER_TCP_PORT)
+        let mut stream = connect_bound_tcp(&local_ip, &ip_clone, TRANSFER_TCP_PORT, if_index)
             .map_err(|e| format!("Could not reach {}:{}: {}", ip_clone, TRANSFER_TCP_PORT, e))?;
 
         let hello = WireCommand {
